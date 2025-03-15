@@ -1,0 +1,219 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model Role {
+  role_id  String   @id @default(uuid()) @db.Char(36)
+  roleName RoleName @default(User)
+  
+  users    User[]
+}
+
+enum RoleName {
+  Admin
+  User
+}
+
+model User {
+  user_id       String         @id @default(uuid()) @db.Char(36)
+  username      String         @db.VarChar(30)
+  passWord      String
+  email         String         @unique @db.VarChar(30)
+  phone_number  String         @db.VarChar(10)
+  create_at     DateTime       @db.Date
+  roleID        String         @db.Char(36)
+  role          Role           @relation(fields: [roleID], references: [role_id], onDelete: Cascade, onUpdate: NoAction)
+  
+  Bank_accounts Bank_account[]
+  
+  Bookings Booking[]
+
+  Fields Fields[]
+
+  Reviews Reviews[]
+}
+
+model Bank_account {
+  bank_id             String @id @default(uuid()) @db.Char(36)
+  bank_account_number Int    @db.Int
+  bank_account_name   String @db.VarChar(30)
+  UserID              String @db.Char(36)
+  user                User   @relation(fields: [UserID], references: [user_id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+model Payments{
+  payment_id String @id @default(uuid()) @db.Char(36)
+  total_price Decimal
+  payment_date DateTime
+  method Payments_Method @default(Cash)
+  status Payments_Status @default(Success)
+
+  Payment_Bookings Payments_Booking[]
+}
+
+enum Payments_Method {
+  Banking
+  Cash
+}
+
+enum Payments_Status {
+  Success
+  Failed
+}
+
+model Payments_Booking {
+  isDeposit Boolean
+  PaymentID String @db.VarChar(36)
+  payment Payments @relation(fields: [PaymentID], references: [payment_id], onDelete: Cascade, onUpdate: NoAction)
+  BookingID String @db.VarChar(36)
+  booking Booking @relation(fields: [BookingID], references: [booking_id], onDelete: Cascade, onUpdate: NoAction)
+  @@id([PaymentID,BookingID])
+}
+
+model Booking {
+  booking_id String @id @default(uuid()) @db.Char(36)
+  booking_date DateTime @db.Date
+  time_start DateTime @db.DateTime()
+  time_end DateTime @db.DateTime()
+  total_price Decimal
+  deposit Decimal
+  Status Booking_Status @default(Pending)
+  prove_payment String @db.VarChar(30)
+  UserID String @db.VarChar(36)
+  user User @relation(fields: [UserID], references: [user_id], onDelete: Cascade, onUpdate: NoAction)
+  FieldID String @db.VarChar(36)
+  fields Fields @relation(fields: [FieldID], references: [field_id], onDelete: Cascade, onUpdate: NoAction)
+
+  Payment_Bookings Payments_Booking[]
+}
+
+enum Booking_Status {
+  Pending
+  Confirmed
+  Cancelled
+}
+
+model Category {
+  category_id String @id @default(uuid()) @db.VarChar(36)
+  category_name String @db.VarChar(30)
+
+  Fields Fields[]
+}
+
+model Option_Fields {
+  option_field_id String @id @default(uuid()) @db.VarChar(36)
+  number_of_field String @db.VarChar(30)
+
+  Fields Fields[]
+}
+
+model Fields {
+  field_id String @id @default(uuid()) @db.VarChar(36)
+  field_name String @db.VarChar(30)
+  half_hour Boolean
+  location String @db.VarChar(30)
+  description String @db.VarChar(30)
+  status Fields_status @default(Inactive)
+  image_url String @db.VarChar(30)
+  create_at DateTime
+  OwnerID String @db.VarChar(36) 
+  user User @relation(fields: [OwnerID], references: [user_id], onDelete: Cascade, onUpdate: NoAction)
+  CategoryID String @db.VarChar(36)
+  category Category @relation(fields: [CategoryID], references: [category_id], onDelete: Cascade, onUpdate: NoAction)
+  OptionID String @db.VarChar(36)
+  option Option_Fields @relation(fields: [OptionID], references: [option_field_id], onDelete: Cascade, onUpdate: NoAction)
+
+  Reviews Reviews[]
+
+  Booking Booking[]
+
+  Space_Per_Hour Space_Per_Hour[]
+
+  Hours Hours[]
+
+  Fields_Schedule Fields_Schedules?
+
+  Promotions Promotions[]
+}
+
+enum Fields_status {
+  Active
+  Inactive
+}
+
+model Reviews {
+  review_id String @id @default(uuid()) @db.VarChar(36)
+  rating Float
+  comment String @db.VarChar(30)
+  create_at DateTime
+  UserID String @db.VarChar(36)
+  user User @relation(fields: [UserID], references: [user_id], onDelete: Cascade, onUpdate: NoAction)
+  FieldID String @db.VarChar(36)
+  fields Fields @relation(fields: [FieldID], references: [field_id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+model Space_Per_Hour {
+  space_per_hour_id String @id @default(uuid()) @db.VarChar(36)
+  from_hour_value String @db.VarChar(30)
+  to_hour_value String @db.VarChar(30)
+  price Float
+  FieldID String @db.VarChar(36)
+  fields Fields @relation(fields: [FieldID], references: [field_id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+model Hours {
+  hours_id String @id @default(uuid()) @db.VarChar(36)
+  hour_value Float
+  status_hour_on Status_Hour_on @default(Enable)
+  status_hour_off Status_Hour_off @default(Booked)
+  FieldID String @db.VarChar(36)
+  fields Fields @relation(fields: [FieldID], references: [field_id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+enum Status_Hour_on {
+  Enable
+}
+
+enum Status_Hour_off {
+  Booked
+  Out_of_time
+}
+
+model Fields_Schedules {
+  schedule_id String @id @default(uuid()) @db.VarChar(36)
+  day_of_week DayOfWeek
+  open_time DateTime @db.Time()
+  close_time DateTime @db.Time()
+  FieldID String @db.VarChar(36) @unique
+  fields Fields @relation(fields: [FieldID], references: [field_id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+enum DayOfWeek {
+  Mon
+  Tue
+  Wed
+  Thu
+  Fri
+  Sat
+  Sun
+}
+
+model Promotions {
+  promotion_id String @id @default(uuid()) @db.VarChar(36)
+  discount Decimal
+  start_date DateTime
+  end_date DateTime
+  FieldID String @db.VarChar(36) @unique
+  fields Fields @relation(fields: [FieldID], references: [field_id], onDelete: Cascade, onUpdate: NoAction)
+}

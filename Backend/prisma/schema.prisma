@@ -15,14 +15,15 @@ datasource db {
 
 model Role {
   role_id  String   @id @default(uuid()) @db.Char(36)
-  roleName RoleName @default(User)
+  roleName RoleName @default(Customer)
   
   users    User[]
 }
 
 enum RoleName {
   Admin
-  User
+  Customer
+  Owner
 }
 
 model User {

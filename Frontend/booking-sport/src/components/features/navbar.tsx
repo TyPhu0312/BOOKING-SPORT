@@ -65,7 +65,7 @@ const Navbar = () => {
                                 </Link>
                             </NavigationMenuItem>
                             <NavigationMenuItem>
-                                <Link href="/lien-he" legacyBehavior passHref>
+                                <Link href="/gioithieu" legacyBehavior passHref>
                                     <NavigationMenuLink className="hover:text-black transition hover:font-bold">
                                         Liên hệ
                                     </NavigationMenuLink>
@@ -130,17 +130,17 @@ const Navbar = () => {
                         </button>
                         {isMenuOpen && (
                             <div className="pl-4 space-y-2">
-                                <Link href="/dich-vu/sua-san" passHref legacyBehavior>
+                                <Link href="/gioithieu" passHref legacyBehavior>
                                     <a className="block text-gray-600 hover:text-black">
                                         Liên hệ
                                     </a>
                                 </Link>
-                                <Link href="/dich-vu/bao-tri" passHref legacyBehavior>
+                                <Link href="/gioithieu" passHref legacyBehavior>
                                     <a className="block text-gray-600 hover:text-black">
                                         Dịch vụ
                                     </a>
                                 </Link>
-                                <Link href="/dich-vu/thue-doi" passHref legacyBehavior>
+                                <Link href="/gioithieu" passHref legacyBehavior>
                                     <a className="block text-gray-600 hover:text-black">
                                         Giới thiệu
                                     </a>

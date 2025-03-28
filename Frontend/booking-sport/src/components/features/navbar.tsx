@@ -12,7 +12,7 @@ import {
     NavigationMenuList,
     NavigationMenuLink,
 } from "@/components/ui/navigation-menu";
-  
+
 const Navbar = () => {
     const [isMobileMenuOpen, setMobileMenuOpen] = React.useState(false);
     const [isMenuOpen, setMenuOpen] = React.useState(false); // chỉ dùng cho mobile dropdown
@@ -71,7 +71,6 @@ const Navbar = () => {
                                     </NavigationMenuLink>
                                 </Link>
                             </NavigationMenuItem>
-
                         </NavigationMenuList>
                     </NavigationMenu>
                 </div>
@@ -87,6 +86,11 @@ const Navbar = () => {
                     <Button className="bg-black text-white border border-transparent hover:bg-white hover:text-black hover:border-black transition">
                         Đăng ký
                     </Button>
+                    <Link href={"/admin"}>
+                        <Button className="bg-black text-white hover:bg-white hover:text-black hover:border-black transition">
+                            Admin
+                        </Button>
+                    </Link>
                 </div>
 
                 {/* Nút menu mobile */}
@@ -155,6 +159,9 @@ const Navbar = () => {
                         </Button>
                         <Button className="bg-black text-white hover:bg-white hover:text-black hover:border-black transition">
                             Đăng ký
+                        </Button>
+                        <Button className="bg-black text-white hover:bg-white hover:text-black hover:border-black transition">
+                            Admin
                         </Button>
                     </div>
                 </div>

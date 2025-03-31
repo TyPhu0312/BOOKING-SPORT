@@ -1,7 +1,9 @@
-// app/layout.tsx
 import type { Metadata } from "next";
 import "./globals.css";
-import NavbarWrapper from "@/components/NavbarWrapper"; // <-- Import navbar custom của bạn
+
+import Navbar from "@/components/features/navbar"; 
+import Footer from "@/components/features/Footer";
+
 
 export const metadata: Metadata = {
   title: "Đặt Sân Bóng Online",
@@ -15,10 +17,19 @@ export default function RootLayout({
 }) {
   return (
     <html lang="vi">
-      <body className="bg-gray-100 text-gray-800 font-sans">
-        <NavbarWrapper>
-          <main >{children}</main>
-        </NavbarWrapper>
+
+      <body className="bg-gray-100 text-gray-800 font-sans overflow-x-hidden flex flex-col min-h-screen">
+        {/* Navbar */}
+        <Navbar />  
+
+        {/* Nội dung từng page */}
+        <main className="flex-grow container-fluid mx-auto w-full">
+          {children}
+        </main>
+
+        {/* Footer */}
+        <Footer />
+
       </body>
     </html>
   );

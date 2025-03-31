@@ -4,15 +4,13 @@ import * as React from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
-import { Menu, X,  } from "lucide-react";
+import { Menu, X, } from "lucide-react";
 
 import {
     NavigationMenu,
     NavigationMenuItem,
     NavigationMenuList,
     NavigationMenuLink,
-    NavigationMenuContent,
-    NavigationMenuTrigger,
 } from "@/components/ui/navigation-menu";
 
 const Navbar = () => {
@@ -66,39 +64,12 @@ const Navbar = () => {
                                     </NavigationMenuLink>
                                 </Link>
                             </NavigationMenuItem>
-
-                            {/* Hover Dropdown Menu - Về chúng tôi */}
                             <NavigationMenuItem>
-                                <NavigationMenuTrigger className="flex items-center gap-1 font-normal hover:text-black transition hover:font-bold cursor-pointer leading-none">
-                                    Về chúng tôi
-                             {/*        <ChevronDown className="w-4 h-4" /> */}
-                                </NavigationMenuTrigger>
-
-                                <NavigationMenuContent className="bg-white shadow-md rounded-md p-2 mt-2">
-                                    <ul className="flex flex-col space-y-2 w-48">
-                                        <li>
-                                            <Link href="/dich-vu/sua-san" legacyBehavior passHref>
-                                                <a className="block text-gray-800 hover:text-black transition">
-                                                    Liên hệ
-                                                </a>
-                                            </Link>
-                                        </li>
-                                        <li>
-                                            <Link href="/dich-vu/bao-tri" legacyBehavior passHref>
-                                                <a className="block text-gray-800 hover:text-black transition">
-                                                    Dịch vụ
-                                                </a>
-                                            </Link>
-                                        </li>
-                                        <li>
-                                            <Link href="/dich-vu/thue-doi" legacyBehavior passHref>
-                                                <a className="block text-gray-800 hover:text-black transition">
-                                                    Giới thiệu
-                                                </a>
-                                            </Link>
-                                        </li>
-                                    </ul>
-                                </NavigationMenuContent>
+                                <Link href="/gioithieu" legacyBehavior passHref>
+                                    <NavigationMenuLink className="hover:text-black transition hover:font-bold">
+                                        Liên hệ
+                                    </NavigationMenuLink>
+                                </Link>
                             </NavigationMenuItem>
                         </NavigationMenuList>
                     </NavigationMenu>
@@ -115,6 +86,11 @@ const Navbar = () => {
                     <Button className="bg-black text-white border border-transparent hover:bg-white hover:text-black hover:border-black transition">
                         Đăng ký
                     </Button>
+                    <Link href={"/admin"}>
+                        <Button className="bg-black text-white hover:bg-white hover:text-black hover:border-black transition">
+                            Admin
+                        </Button>
+                    </Link>
                 </div>
 
                 {/* Nút menu mobile */}
@@ -151,24 +127,20 @@ const Navbar = () => {
                             onClick={() => setMenuOpen(!isMenuOpen)}
                         >
                             <span>Về chúng tôi</span>
-                            {/* <ChevronDown
-                                className={`w-4 h-4 transition-transform ${isMenuOpen ? "rotate-180" : ""
-                                    }`}
-                            /> */}
                         </button>
                         {isMenuOpen && (
                             <div className="pl-4 space-y-2">
-                                <Link href="/dich-vu/sua-san" passHref legacyBehavior>
+                                <Link href="/gioithieu" passHref legacyBehavior>
                                     <a className="block text-gray-600 hover:text-black">
                                         Liên hệ
                                     </a>
                                 </Link>
-                                <Link href="/dich-vu/bao-tri" passHref legacyBehavior>
+                                <Link href="/gioithieu" passHref legacyBehavior>
                                     <a className="block text-gray-600 hover:text-black">
                                         Dịch vụ
                                     </a>
                                 </Link>
-                                <Link href="/dich-vu/thue-doi" passHref legacyBehavior>
+                                <Link href="/gioithieu" passHref legacyBehavior>
                                     <a className="block text-gray-600 hover:text-black">
                                         Giới thiệu
                                     </a>
@@ -187,6 +159,9 @@ const Navbar = () => {
                         </Button>
                         <Button className="bg-black text-white hover:bg-white hover:text-black hover:border-black transition">
                             Đăng ký
+                        </Button>
+                        <Button className="bg-black text-white hover:bg-white hover:text-black hover:border-black transition">
+                            Admin
                         </Button>
                     </div>
                 </div>

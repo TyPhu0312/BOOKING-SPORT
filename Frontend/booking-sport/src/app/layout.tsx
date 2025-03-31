@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import "./globals.css";
+
 import Navbar from "@/components/features/navbar"; 
 import Footer from "@/components/features/Footer";
+
 
 export const metadata: Metadata = {
   title: "Đặt Sân Bóng Online",
@@ -15,6 +17,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="vi">
+
       <body className="bg-gray-100 text-gray-800 font-sans overflow-x-hidden flex flex-col min-h-screen">
         {/* Navbar */}
         <Navbar />  
@@ -26,6 +29,7 @@ export default function RootLayout({
 
         {/* Footer */}
         <Footer />
+
       </body>
     </html>
   );

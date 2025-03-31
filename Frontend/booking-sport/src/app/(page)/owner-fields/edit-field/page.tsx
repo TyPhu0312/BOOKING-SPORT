@@ -39,21 +39,12 @@ const EditFieldPage = () => {
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-
-    const existingFields = JSON.parse(localStorage.getItem("fields") || "[]");
-
-    const updatedFields = existingFields.map((f) => (f.id === field.id ? field : f));
-    localStorage.setItem("fields", JSON.stringify(updatedFields));
-
-    router.push("/owner-manage");
-  };
+  
 
   return (
     <div className="max-w-4xl mx-auto p-6 bg-white shadow-lg rounded-xl mt-6">
       <h1 className="text-3xl font-bold text-center mb-6">Chỉnh sửa sân</h1>
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form className="space-y-4">
         <input type="text" name="type" value={field.type} onChange={handleChange} className="w-full p-2 border rounded-lg" required placeholder="Thể loại sân" />
         <input type="text" name="name" value={field.name} onChange={handleChange} className="w-full p-2 border rounded-lg" required placeholder="Tên sân" />
         <textarea name="description" value={field.description} onChange={handleChange} className="w-full p-2 border rounded-lg" required placeholder="Mô tả"></textarea>

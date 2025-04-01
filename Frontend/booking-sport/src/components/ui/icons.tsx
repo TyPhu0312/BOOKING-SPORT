@@ -4,7 +4,6 @@ import {
   BookMarked,
   CalendarCheck,
   Check,
-  GraduationCap,
   LucideIcon,
   LucideProps,
   Sparkles,

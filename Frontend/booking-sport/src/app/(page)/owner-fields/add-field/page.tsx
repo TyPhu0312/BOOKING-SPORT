@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 
 const AddFieldPage = () => {
   const router = useRouter();
-  const [field, setField] = useState({
+  const [field] = useState({
     type: "",
     name: "",
     description: "",

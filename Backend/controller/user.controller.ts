@@ -7,8 +7,8 @@ const prisma = new PrismaClient();
 // Tạo người dùng mới
 export const createUser = async (req: any, res: any) => {
     try {
-        const { username, passWord, email, phone_number, roleID } = req.body;
-        if (!username || !passWord || !email || !phone_number || !roleID) {
+        const { username, passWord, email, phone_number, roleID,create_at } = req.body;
+        if (!username || !passWord || !email || !phone_number || !roleID|| !create_at) {
             return res.status(400).json({ error: 'Thiếu trường dữ liệu' });
         }
         if (!validator.isEmail(email)) {
@@ -22,7 +22,7 @@ export const createUser = async (req: any, res: any) => {
                 email,
                 phone_number,
                 roleID,
-                create_at: new Date()
+                create_at
             }
         });
         return res.status(201).json(newUser);
@@ -99,11 +99,8 @@ export const getUserByEmail = async (req: any, res: any) => {
 export const updateUser = async (req: any, res: any) => {
     try {
         const { id } = req.params;
-        const { username, passWord, email, phone_number, roleID } = req.body;
-        if (!validator.isEmail(email)) {
-            return res.status(400).json({ error: 'Địa chỉ email không hợp lệ' });
-        }
-        if (!username || !passWord || !email || !phone_number || !roleID) {
+        const { username, passWord, phone_number, roleID } = req.body;
+        if (!username || !passWord || !phone_number || !roleID) {
             return res.status(400).json({ error: 'Thiếu trường dữ liệu' });
         }
         const hashedPassword = createHash('sha3-512').update(passWord).digest('hex');
@@ -112,7 +109,6 @@ export const updateUser = async (req: any, res: any) => {
             data: {
                 username,
                 passWord: hashedPassword,
-                email,
                 phone_number,
                 roleID
             }

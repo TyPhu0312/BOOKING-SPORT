@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-
+import Image from "next/image";
 const EditFieldPage = () => {
   const router = useRouter();
   const [field, setField] = useState({
@@ -82,7 +82,7 @@ const EditFieldPage = () => {
 
         {/* Hiển thị ảnh cũ và chọn ảnh mới */}
         <label className="block font-semibold">Ảnh sân:</label>
-        {field.image && <img src={field.image} alt="" className="w-40 h-28 object-cover rounded-lg mb-2" />}
+        {field.image && <Image width={40} height={28} src={field.image} alt="" className="w-40 h-28 object-cover rounded-lg mb-2" />}
         <input type="file" name="image" accept="image/*" onChange={handleChange} className="w-full p-2 border rounded-lg" />
 
         <button type="submit" className="w-full bg-blue-500 text-white py-2 rounded-lg">Lưu thay đổi</button>

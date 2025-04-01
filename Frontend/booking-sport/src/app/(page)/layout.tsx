@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
-import "./globals.css";
-import Navbar from "@/components/features/navbar"; 
+import "../globals.css";
+import Navbar from "@/components/features/navbar";
 import Footer from "@/components/features/Footer";
 
 export const metadata: Metadata = {
@@ -14,19 +14,17 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="vi">
-      <body className="bg-gray-100 text-gray-800 font-sans overflow-x-hidden flex flex-col min-h-screen">
-        {/* Navbar */}
-        <Navbar />  
+    <div className="bg-gray-100 text-gray-800 font-sans overflow-x-hidden flex flex-col min-h-screen">
+      {/* Navbar */}
+      <Navbar />
 
-        {/* Nội dung từng page */}
-        <main className="flex-grow container-fluid mx-auto w-full">
-          {children}
-        </main>
+      {/* Nội dung từng page */}
+      <main className="flex-grow container-fluid mx-auto w-full">
+        {children}
+      </main>
 
-        {/* Footer */}
-        <Footer />
-      </body>
-    </html>
+      {/* Footer */}
+      <Footer />
+    </div>
   );
 }

@@ -16,10 +16,11 @@ export default function RootLayout({
   return (
     <div className="bg-gray-100 text-gray-800 font-sans overflow-x-hidden flex flex-col min-h-screen">
       <Navbar />
-        <main className="flex-grow container-fluid mx-auto w-full">
-          {children}
-        </main>
-        <Footer/>
+      <main className="flex-grow container-fluid mx-auto w-full">
+        {children}
+      </main>
+      <Footer />
     </div>
+
   );
 }

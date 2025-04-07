@@ -42,30 +42,28 @@ const Navbar = () => {
                     <NavigationMenu>
                         <NavigationMenuList className="flex space-x-6">
                             <NavigationMenuItem>
-                                <Link href="/" legacyBehavior passHref>
+                                <Link href="/" legacyBehavior passHref className="cursor-pointer">
                                     <NavigationMenuLink className="hover:text-black transition hover:font-bold">
                                         Trang Chủ
                                     </NavigationMenuLink>
                                 </Link>
                             </NavigationMenuItem>
-
                             <NavigationMenuItem>
-                                <Link href="/dat-san" legacyBehavior passHref>
+                                <Link href="/" legacyBehavior passHref className="cursor-pointer">
                                     <NavigationMenuLink className="hover:text-black transition hover:font-bold">
                                         Tất cả sân
                                     </NavigationMenuLink>
                                 </Link>
                             </NavigationMenuItem>
-
                             <NavigationMenuItem>
-                                <Link href="/owner-fields/add-fields" legacyBehavior passHref>
+                                <Link href="/owner-fields/owner-manage" legacyBehavior passHref className="cursor-pointer">
                                     <NavigationMenuLink className="hover:text-black transition hover:font-bold">
                                         Trở thành chủ sân
                                     </NavigationMenuLink>
                                 </Link>
                             </NavigationMenuItem>
                             <NavigationMenuItem>
-                                <Link href="/about" legacyBehavior passHref>
+                                <Link href="/about" legacyBehavior passHref className="cursor-pointer">
                                     <NavigationMenuLink className="hover:text-black transition hover:font-bold">
                                         Liên hệ
                                     </NavigationMenuLink>
@@ -77,16 +75,17 @@ const Navbar = () => {
 
                 {/* Nút bên phải */}
                 <div className="hidden md:flex items-center space-x-2 z-10">
-                    <Button
-                        variant="outline"
-                        className="border-gray-300 text-gray-800 hover:bg-black hover:text-white transition"
-                    >
-                        Đăng nhập
-                    </Button>
-                    <Button className="bg-black text-white border border-transparent hover:bg-white hover:text-black hover:border-black transition">
-                        Đăng ký
-                    </Button>
-                    <Link href={"/admin"}>
+                    <Link href={"/LoginForm"} className="cursor-pointer">
+                        <Button className="bg-white text-gray-800 border border-gray-300 hover:bg-black hover:text-white transition">
+                            Đăng nhập
+                        </Button>
+                    </Link>
+                    <Link href={"/RegisterForm"} className="cursor-pointer">
+                        <Button className="bg-black text-white border border-transparent hover:bg-white hover:text-black hover:border-black transition">
+                            Đăng ký
+                        </Button>
+                    </Link>
+                    <Link href={"/admin"} className="cursor-pointer">
                         <Button className="bg-black text-white hover:bg-white hover:text-black hover:border-black transition">
                             Admin
                         </Button>
@@ -104,17 +103,17 @@ const Navbar = () => {
             {/* Mobile menu dropdown */}
             {isMobileMenuOpen && (
                 <div className="md:hidden bg-white shadow-md py-4 px-6 space-y-4">
-                    <Link href="/" passHref legacyBehavior>
+                    <Link href="/" passHref legacyBehavior className="cursor-pointer">
                         <a className="block text-gray-800 hover:text-black transition">
                             Trang Chủ
                         </a>
                     </Link>
-                    <Link href="/" passHref legacyBehavior>
+                    <Link href="/" passHref legacyBehavior className="cursor-pointer">
                         <a className="block text-gray-800 hover:text-black transition">
                             Tất cả sân
                         </a>
                     </Link>
-                    <Link href="/owner-fields/add-field" passHref legacyBehavior>
+                    <Link href="/owner-fields/owner-manage" passHref legacyBehavior className="cursor-pointer">
                         <a className="block text-gray-800 hover:text-black transition">
                             Trở thành chủ sân
                         </a>
@@ -151,18 +150,21 @@ const Navbar = () => {
 
                     {/* Đăng nhập / Đăng ký mobile */}
                     <div className="flex flex-col space-y-2 pt-4">
-                        <Button
-                            variant="outline"
-                            className="border-gray-300 text-gray-800 hover:bg-black hover:text-white transition"
-                        >
-                            Đăng nhập
-                        </Button>
-                        <Button className="bg-black text-white hover:bg-white hover:text-black hover:border-black transition">
-                            Đăng ký
-                        </Button>
-                        <Button className="bg-black text-white hover:bg-white hover:text-black hover:border-black transition">
-                            Admin
-                        </Button>
+                        <Link href={"/LoginForm"}>
+                            <Button className="bg-white cursor-pointer text-gray-800 border border-gray-300 hover:bg-black hover:text-white transition">
+                                Đăng nhập
+                            </Button>
+                        </Link>
+                        <Link href={"/RegisterForm"}>
+                            <Button className="bg-black cursor-pointer text-white border border-transparent hover:bg-white hover:text-black hover:border-black transition">
+                                Đăng ký
+                            </Button>
+                        </Link>
+                        <Link href={"/admin"}>
+                            <Button className="bg-black cursor-pointer text-white hover:bg-white hover:text-black hover:border-black transition">
+                                Admin
+                            </Button>
+                        </Link>
                     </div>
                 </div>
             )}

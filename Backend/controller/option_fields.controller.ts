@@ -6,7 +6,7 @@ const prisma = new PrismaClient();
 export const getAllOptionFields = async (req: any, res: any) => {
   try {
     const optionFields = await prisma.option_Fields.findMany({
-      include: { Fields: true },
+      include: { category: true }, // include category
     });
     res.status(200).json(optionFields);
   } catch (error: any) {
@@ -21,7 +21,7 @@ export const getOptionFieldById = async (req: any, res: any) => {
     const { id } = req.params;
     const optionField = await prisma.option_Fields.findUnique({
       where: { option_field_id: id },
-      include: { Fields: true },
+      include: { category: true },
     });
     if (!optionField) return res.status(404).json({ error: 'Không tìm thấy Option Field' });
     res.status(200).json(optionField);
@@ -34,11 +34,17 @@ export const getOptionFieldById = async (req: any, res: any) => {
 // Tạo mới Option Field
 export const createOptionField = async (req: any, res: any) => {
   try {
-    const { number_of_field } = req.body;
-    if (!number_of_field) return res.status(400).json({ error: 'Thiếu số lượng sân' });
+    const { number_of_field, CategoryID } = req.body;
+
+    if (!number_of_field || !CategoryID) {
+      return res.status(400).json({ error: 'Thiếu số lượng sân hoặc CategoryID' });
+    }
 
     const newOptionField = await prisma.option_Fields.create({
-      data: { number_of_field },
+      data: {
+        number_of_field,
+        CategoryID,
+      },
     });
     res.status(201).json(newOptionField);
   } catch (error: any) {
@@ -51,12 +57,16 @@ export const createOptionField = async (req: any, res: any) => {
 export const updateOptionField = async (req: any, res: any) => {
   try {
     const { id } = req.params;
-    const { number_of_field } = req.body;
+    const { number_of_field, CategoryID } = req.body;
 
     const updatedOptionField = await prisma.option_Fields.update({
       where: { option_field_id: id },
-      data: { number_of_field },
+      data: {
+        number_of_field,
+        CategoryID,
+      },
     });
+
     res.status(200).json(updatedOptionField);
   } catch (error: any) {
     if (error.code === 'P2025') {
@@ -71,7 +81,9 @@ export const updateOptionField = async (req: any, res: any) => {
 export const deleteOptionField = async (req: any, res: any) => {
   try {
     const { id } = req.params;
-    await prisma.option_Fields.delete({ where: { option_field_id: id } });
+    await prisma.option_Fields.delete({
+      where: { option_field_id: id },
+    });
     res.status(200).json({ message: 'Xóa Option Field thành công' });
   } catch (error: any) {
     if (error.code === 'P2025') {

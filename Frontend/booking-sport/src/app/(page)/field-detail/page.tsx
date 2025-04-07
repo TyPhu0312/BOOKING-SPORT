@@ -30,19 +30,20 @@ const FieldDetail = () => {
         date: new Date(),
         duration: "1.5",
         note: "",
+        startTime: "",
     });
     interface TimeSlot {
         time: string;
         available: boolean;
         price: number;
     }
-    
+
     interface DaySlot {
         dayLabel: string;
         date: string;
         slots: TimeSlot[];
     }
-    
+
     const generateDaySlot = (dayLabel: string, date: string): DaySlot => {
         const slots = Array.from({ length: 24 }, (_, i) => {
             const hourStr = String(i).padStart(2, '0') + ":00";
@@ -50,10 +51,19 @@ const FieldDetail = () => {
             const price = available ? Math.floor(Math.random() * 100000) + 50000 : 0;
             return { time: hourStr, available, price };
         });
-    
+
         return { dayLabel, date, slots };
     };
-    
+    const generateTimeOptions = () => {
+        const times: string[] = [];
+        for (let hour = 0; hour < 24; hour++) {
+            const hourStr = hour.toString().padStart(2, '0');
+            times.push(`${hourStr}:00`);
+            times.push(`${hourStr}:30`);
+        }
+        return times;
+    };
+
     const schedule: DaySlot[] = [
         generateDaySlot("Monday", "2025-04-08"),
         generateDaySlot("Tuesday", "2025-04-09")
@@ -68,10 +78,10 @@ const FieldDetail = () => {
         price: string;
         services: { icon: JSX.Element; text: string }[];
     } | null>(null);
- 
+
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
     // Dữ liệu giả
-    const fakeImages = ["/images/stadium.jpg", "/images/stadium.jpg", "/images/stadium.jpg","/images/stadium.jpg","/images/stadium.jpg"];
+    const fakeImages = ["/images/stadium.jpg", "/images/stadium.jpg", "/images/stadium.jpg", "/images/stadium.jpg", "/images/stadium.jpg"];
     const fakeFieldInfo = {
         name: "Sân cầu lông Quỳnh Anh Shyn",
         address: "Đường Cao Lỗ, Phường 4, Quận 8, Hồ Chí Minh",
@@ -106,7 +116,7 @@ const FieldDetail = () => {
         };
 
         fetchFieldData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
     const handleSubmit = async () => {
         try {
@@ -126,8 +136,8 @@ const FieldDetail = () => {
     return (
         <div className="mt-[70px] flex-col bg-white h-auto w-full">
             {/* Fields Info */}
-            <div className="flex bg-white flex-col md:flex-row gap-2 items-start justify-between pt-[30px] pb-[30px] ml-[20px] mr-[20px] md:mr-[50px]">
-                <div className="flex flex-col gap-3 items-start text-center md:items-start">
+            <div className="flex bg-white flex-col md:flex-row gap-10 items-start justify-start pt-[30px] pb-[30px]">
+                <div className="flex flex-col gap-3 items-start text-center md:items-start md:pl-[190px]">
                     <h1 className="pl-[20px] text-3xl font-bold md:text-3xl md:pl-7">{fieldInfo.name}</h1>
                     <div className="flex items-center gap-2 md:pl-6">
                         <FaMapMarkerAlt size={24} className="text-red-500 ml-[20px] md:ml-[0px]" />
@@ -135,13 +145,7 @@ const FieldDetail = () => {
                     </div>
                 </div>
 
-                <div className="flex flex-col md:flex-row md:items-end md:justify-end gap-5 mt-5 md:mt-0 w-full md:w-auto pr-5">
-                    <div className="flex items-center justify-center flex-col gap-2">
-                        <p>Đánh giá</p>
-                        <RatingStar initialRating={fieldInfo.rating} totalStars={5} />
-                    </div>
-                    <HeartButton size={30} className="mb-2 md:mb-4 flex items-center justify-center" />
-                </div>
+
             </div>
 
             {/* Main Content */}
@@ -181,7 +185,13 @@ const FieldDetail = () => {
                     </div>
                 </ScrollArea>
 
-                <div className="border md:1/3 p-4 w-full md:max-w-[500px] md:w-2/4 h-auto rounded-lg flex-col justify-center gap-1 flex">
+                <div className=" md:1/3 p-4 w-full md:max-w-[500px] md:w-2/4 h-auto rounded-lg flex-col justify-center gap-1 flex">
+                    <Button
+                        className="bg-black text-xl text-white hover:bg-gray-900 cursor-pointer w-auto mb-2 block md:hidden"
+                        onClick={() => alert("Đặt sân thành công!")}
+                    >
+                        Đặt sân ngay
+                    </Button>
                     <h1 className="font-bold text-3xl text-black text-center rounded-lg">Thông tin sân</h1>
                     <div className="space-y-2 text-sm text-gray-700 mt-4">
                         <div className="flex justify-between">
@@ -199,7 +209,7 @@ const FieldDetail = () => {
                     </div>
                     <div className="mt-5">
                         <p className="font-bold">✔ Dịch vụ tiện ích:</p>
-                        <ul className="grid mt-3 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 pl-6">
+                        <ul className="grid mt-3 grid-cols-2 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-2 pl-6">
                             {fieldInfo.services.map((service, idx) => (
                                 <li key={idx} className="flex items-center justify-center text-center gap-2 p-2 bg-gray-300 h-[50px] rounded-md mb-2 max-w-[160px] w-full">
                                     {service.icon}
@@ -207,7 +217,17 @@ const FieldDetail = () => {
                                 </li>
                             ))}
                         </ul>
+                        <div className="flex justify-center md:flex-row md:items-center md:justify-center gap-15 md:gap-5 mt-5 md:mt-5 w-full md:w-auto pr-5">
+                            <div className="flex items-center justify-center flex-col gap-2">
+                                <p>Đánh giá</p>
+                                <RatingStar initialRating={fieldInfo.rating} totalStars={5} />
+                            </div>
+                            <HeartButton size={30} className="mb-2 md:mb-4 flex items-center justify-center" />
+                        </div>
                     </div>
+                    <Button className="bg-black text-xl text-white hover:bg-gray-900 cursor-pointer w-full md:w-auto mt-4" onClick={() => alert("Đặt sân thành công!")}>
+                        Đặt sân ngay
+                    </Button>
                 </div>
             </div>
 
@@ -222,20 +242,27 @@ const FieldDetail = () => {
                             <Input placeholder="Số điện thoại" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
                             <Calendar mode="single" selected={form.date} onSelect={(date) => date && setForm({ ...form, date })} />
                             <div className="flex gap-4 w-full items-center justify-center">
-                                <Select value={form.duration} onValueChange={(value) => setForm({ ...form, duration: value })}>
-                                    <SelectTrigger>
-                                        <SelectValue placeholder="Chọn thời lượng" />
+                                <Select
+                                    value={form.startTime}
+                                    onValueChange={(value) => setForm({ ...form, startTime: value })}
+                                >
+                                    <SelectTrigger className="w-full">
+                                        <SelectValue placeholder="Chọn thời gian bắt đầu" />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        <SelectItem value="1.5">1.5 giờ</SelectItem>
-                                        <SelectItem value="2">2 giờ</SelectItem>
-                                        <SelectItem value="2.5">2.5 giờ</SelectItem>
-                                        <SelectItem value="3">3 giờ</SelectItem>
+                                        {generateTimeOptions().map((time) => (
+                                            <SelectItem key={time} value={time}>
+                                                {time}
+                                            </SelectItem>
+                                        ))}
                                     </SelectContent>
                                 </Select>
-                                <Select value={form.duration} onValueChange={(value) => setForm({ ...form, duration: value })}>
-                                    <SelectTrigger>
-                                        <SelectValue placeholder="Chọn giờ bắt đ" />
+                                <Select
+                                    value={form.duration}
+                                    onValueChange={(value) => setForm({ ...form, duration: value })}
+                                >
+                                    <SelectTrigger className="w-full">
+                                        <SelectValue placeholder="Chọn thời lượng" />
                                     </SelectTrigger>
                                     <SelectContent>
                                         <SelectItem value="1.5">1.5 giờ</SelectItem>
@@ -250,7 +277,7 @@ const FieldDetail = () => {
                                 value={form.note}
                                 onChange={(e) => setForm({ ...form, note: e.target.value })}
                             />
-                            <Button onClick={handleSubmit}>Đặt sân</Button>
+                            <Button onClick={handleSubmit}>Đặt sân tại đây</Button>
                         </CardContent>
                     </Card>
                 </div>

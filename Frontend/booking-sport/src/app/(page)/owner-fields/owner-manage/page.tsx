@@ -11,7 +11,7 @@ const ManageFields = () => {
     <div className="p-6 max-w-7xl mx-auto">
       <h1 className="text-3xl font-bold text-center mb-6 mt-25">Quản lý sân</h1>
       <div className="flex justify-end mb-4">
-        <button onClick={() => router.push("/add-field")} className="px-4 py-2 bg-green-500 text-white rounded-lg">
+        <button onClick={() => router.push("/owner-fields/add-field")} className="px-4 py-2 bg-green-500 text-white rounded-lg">
           Thêm sân
         </button>
       </div>

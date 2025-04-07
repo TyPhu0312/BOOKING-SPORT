@@ -26,7 +26,7 @@ export default function HomePage() {
   }, []);
 
   const handleSearch = () => {
-    setShowStadiumList(true); // Hiện danh sách sân khi nhấn "Tìm sân"
+    setShowStadiumList(true); 
   };
 
   const mockFilterOptions = {

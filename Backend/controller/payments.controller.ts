@@ -5,10 +5,17 @@ const prisma = new PrismaClient();
 // Tạo Payment mới
 export const createPayment = async (req: any, res: any) => {
   try {
-    const { total_price, payment_date, method, status } = req.body;
+    const { total_price, payment_date, method, status, isDeposit, BookingID } = req.body;
 
-    if (!total_price || !payment_date || !method || !status) {
-      return res.status(400).json({ error: 'Thiếu trường dữ liệu' });
+    if (
+      total_price === undefined ||
+      !payment_date ||
+      !method ||
+      !status ||
+      isDeposit === undefined ||
+      !BookingID
+    ) {
+      return res.status(400).json({ error: 'Thiếu trường dữ liệu bắt buộc' });
     }
 
     if (!Object.values(Payments_Method).includes(method)) {
@@ -20,7 +27,14 @@ export const createPayment = async (req: any, res: any) => {
     }
 
     const newPayment = await prisma.payments.create({
-      data: { total_price, payment_date, method, status },
+      data: {
+        total_price,
+        payment_date: new Date(payment_date),
+        method,
+        status,
+        isDeposit,
+        BookingID,
+      },
     });
 
     return res.status(201).json(newPayment);
@@ -34,7 +48,7 @@ export const createPayment = async (req: any, res: any) => {
 export const getAllPayments = async (req: any, res: any) => {
   try {
     const payments = await prisma.payments.findMany({
-      include: { Payment_Bookings: true },
+      include: { booking: true },
     });
 
     return res.status(200).json(payments);
@@ -51,7 +65,7 @@ export const getPaymentById = async (req: any, res: any) => {
 
     const payment = await prisma.payments.findUnique({
       where: { payment_id: id },
-      include: { Payment_Bookings: true },
+      include: { booking: true },
     });
 
     if (!payment) {
@@ -69,10 +83,17 @@ export const getPaymentById = async (req: any, res: any) => {
 export const updatePayment = async (req: any, res: any) => {
   try {
     const { id } = req.params;
-    const { total_price, payment_date, method, status } = req.body;
+    const { total_price, payment_date, method, status, isDeposit, BookingID } = req.body;
 
-    if (!total_price || !payment_date || !method || !status) {
-      return res.status(400).json({ error: 'Thiếu trường dữ liệu' });
+    if (
+      total_price === undefined ||
+      !payment_date ||
+      !method ||
+      !status ||
+      isDeposit === undefined ||
+      !BookingID
+    ) {
+      return res.status(400).json({ error: 'Thiếu trường dữ liệu bắt buộc' });
     }
 
     if (!Object.values(Payments_Method).includes(method)) {
@@ -85,7 +106,14 @@ export const updatePayment = async (req: any, res: any) => {
 
     const updatedPayment = await prisma.payments.update({
       where: { payment_id: id },
-      data: { total_price, payment_date, method, status },
+      data: {
+        total_price,
+        payment_date: new Date(payment_date),
+        method,
+        status,
+        isDeposit,
+        BookingID,
+      },
     });
 
     return res.status(200).json(updatedPayment);

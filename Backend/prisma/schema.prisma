@@ -16,8 +16,8 @@ datasource db {
 model Role {
   role_id  String   @id @default(uuid()) @db.Char(36)
   roleName RoleName @default(Customer)
-  
-  users    User[]
+
+  users User[]
 }
 
 enum RoleName {
@@ -27,17 +27,17 @@ enum RoleName {
 }
 
 model User {
-  user_id       String         @id @default(uuid()) @db.Char(36)
-  username      String         @db.VarChar(30)
-  passWord      String
-  email         String         @unique @db.VarChar(30)
-  phone_number  String         @db.VarChar(10)
-  create_at     DateTime       @db.Date
-  roleID        String         @db.Char(36)
-  role          Role           @relation(fields: [roleID], references: [role_id], onDelete: Cascade, onUpdate: NoAction)
-  
+  user_id      String   @id @default(uuid()) @db.Char(36)
+  username     String   @db.VarChar(30)
+  passWord     String
+  email        String   @unique @db.VarChar(30)
+  phone_number String   @db.VarChar(10)
+  create_at    DateTime @db.Date
+  roleID       String   @db.Char(36)
+  role         Role     @relation(fields: [roleID], references: [role_id], onDelete: Cascade, onUpdate: NoAction)
+
   Bank_accounts Bank_account[]
-  
+
   Bookings Booking[]
 
   Fields Fields[]
@@ -53,14 +53,15 @@ model Bank_account {
   user                User   @relation(fields: [UserID], references: [user_id], onDelete: Cascade, onUpdate: NoAction)
 }
 
-model Payments{
-  payment_id String @id @default(uuid()) @db.Char(36)
-  total_price Decimal
+model Payments {
+  payment_id   String          @id @default(uuid()) @db.Char(36)
+  total_price  Decimal
   payment_date DateTime
-  method Payments_Method @default(Cash)
-  status Payments_Status @default(Success)
-
-  Payment_Bookings Payments_Booking[]
+  method       Payments_Method @default(Cash)
+  status       Payments_Status @default(Success)
+  isDeposit    Boolean
+  BookingID    String          @db.VarChar(36)
+  booking      Booking         @relation(fields: [BookingID], references: [booking_id], onDelete: Cascade, onUpdate: NoAction)
 }
 
 enum Payments_Method {
@@ -73,30 +74,21 @@ enum Payments_Status {
   Failed
 }
 
-model Payments_Booking {
-  isDeposit Boolean
-  PaymentID String @db.VarChar(36)
-  payment Payments @relation(fields: [PaymentID], references: [payment_id], onDelete: Cascade, onUpdate: NoAction)
-  BookingID String @db.VarChar(36)
-  booking Booking @relation(fields: [BookingID], references: [booking_id], onDelete: Cascade, onUpdate: NoAction)
-  @@id([PaymentID,BookingID])
-}
-
 model Booking {
-  booking_id String @id @default(uuid()) @db.Char(36)
-  booking_date DateTime @db.Date
-  time_start DateTime @db.DateTime()
-  time_end DateTime @db.DateTime()
-  total_price Decimal
-  deposit Decimal
-  Status Booking_Status @default(Pending)
-  prove_payment String @db.VarChar(30)
-  UserID String @db.VarChar(36)
-  user User @relation(fields: [UserID], references: [user_id], onDelete: Cascade, onUpdate: NoAction)
-  FieldID String @db.VarChar(36)
-  fields Fields @relation(fields: [FieldID], references: [field_id], onDelete: Cascade, onUpdate: NoAction)
+  booking_id    String         @id @default(uuid()) @db.Char(36)
+  booking_date  DateTime       @db.Date
+  time_start    DateTime       @db.DateTime()
+  time_end      DateTime       @db.DateTime()
+  total_price   Decimal
+  deposit       Decimal
+  Status        Booking_Status @default(Pending)
+  prove_payment String         @db.VarChar(30)
+  UserID        String         @db.VarChar(36)
+  user          User           @relation(fields: [UserID], references: [user_id], onDelete: Cascade, onUpdate: NoAction)
+  FieldID       String         @db.VarChar(36)
+  fields        Fields         @relation(fields: [FieldID], references: [field_id], onDelete: Cascade, onUpdate: NoAction)
 
-  Payment_Bookings Payments_Booking[]
+  Payments Payments[]
 }
 
 enum Booking_Status {
@@ -106,34 +98,38 @@ enum Booking_Status {
 }
 
 model Category {
-  category_id String @id @default(uuid()) @db.VarChar(36)
+  category_id   String @id @default(uuid()) @db.VarChar(36)
   category_name String @db.VarChar(30)
 
   Fields Fields[]
+
+  Option_Fields Option_Fields[]
 }
 
 model Option_Fields {
-  option_field_id String @id @default(uuid()) @db.VarChar(36)
-  number_of_field String @db.VarChar(30)
+  option_field_id String   @id @default(uuid()) @db.VarChar(36)
+  number_of_field String   @db.VarChar(30)
+  CategoryID      String   @db.VarChar(36)
+  category        Category @relation(fields: [CategoryID], references: [category_id], onDelete: Cascade, onUpdate: NoAction)
 
   Fields Fields[]
 }
 
 model Fields {
-  field_id String @id @default(uuid()) @db.VarChar(36)
-  field_name String @db.VarChar(30)
-  half_hour Boolean
-  location String @db.VarChar(30)
-  description String @db.VarChar(30)
-  status Fields_status @default(Inactive)
-  image_url String @db.VarChar(30)
-  create_at DateTime
-  OwnerID String @db.VarChar(36) 
-  user User @relation(fields: [OwnerID], references: [user_id], onDelete: Cascade, onUpdate: NoAction)
-  CategoryID String @db.VarChar(36)
-  category Category @relation(fields: [CategoryID], references: [category_id], onDelete: Cascade, onUpdate: NoAction)
-  OptionID String @db.VarChar(36)
-  option Option_Fields @relation(fields: [OptionID], references: [option_field_id], onDelete: Cascade, onUpdate: NoAction)
+  field_id    String        @id @default(uuid()) @db.VarChar(36)
+  field_name  String        @db.VarChar(30)
+  half_hour   Boolean
+  location    String        @db.VarChar(30)
+  description String        @db.VarChar(30)
+  status      Fields_status @default(Inactive)
+  image_url   String        @db.VarChar(30)
+  create_at   DateTime
+  OwnerID     String        @db.VarChar(36)
+  user        User          @relation(fields: [OwnerID], references: [user_id], onDelete: Cascade, onUpdate: NoAction)
+  CategoryID  String        @db.VarChar(36)
+  category    Category      @relation(fields: [CategoryID], references: [category_id], onDelete: Cascade, onUpdate: NoAction)
+  OptionID    String        @db.VarChar(36)
+  option      Option_Fields @relation(fields: [OptionID], references: [option_field_id], onDelete: Cascade, onUpdate: NoAction)
 
   Reviews Reviews[]
 
@@ -154,32 +150,32 @@ enum Fields_status {
 }
 
 model Reviews {
-  review_id String @id @default(uuid()) @db.VarChar(36)
-  rating Float
-  comment String @db.VarChar(30)
+  review_id String   @id @default(uuid()) @db.VarChar(36)
+  rating    Float
+  comment   String   @db.VarChar(30)
   create_at DateTime
-  UserID String @db.VarChar(36)
-  user User @relation(fields: [UserID], references: [user_id], onDelete: Cascade, onUpdate: NoAction)
-  FieldID String @db.VarChar(36)
-  fields Fields @relation(fields: [FieldID], references: [field_id], onDelete: Cascade, onUpdate: NoAction)
+  UserID    String   @db.VarChar(36)
+  user      User     @relation(fields: [UserID], references: [user_id], onDelete: Cascade, onUpdate: NoAction)
+  FieldID   String   @db.VarChar(36)
+  fields    Fields   @relation(fields: [FieldID], references: [field_id], onDelete: Cascade, onUpdate: NoAction)
 }
 
 model Space_Per_Hour {
   space_per_hour_id String @id @default(uuid()) @db.VarChar(36)
-  from_hour_value String @db.VarChar(30)
-  to_hour_value String @db.VarChar(30)
-  price Float
-  FieldID String @db.VarChar(36)
-  fields Fields @relation(fields: [FieldID], references: [field_id], onDelete: Cascade, onUpdate: NoAction)
+  from_hour_value   String @db.VarChar(30)
+  to_hour_value     String @db.VarChar(30)
+  price             Float
+  FieldID           String @db.VarChar(36)
+  fields            Fields @relation(fields: [FieldID], references: [field_id], onDelete: Cascade, onUpdate: NoAction)
 }
 
 model Hours {
-  hours_id String @id @default(uuid()) @db.VarChar(36)
-  hour_value Float
-  status_hour_on Status_Hour_on @default(Enable)
+  hours_id        String          @id @default(uuid()) @db.VarChar(36)
+  hour_value      Float
+  status_hour_on  Status_Hour_on  @default(Enable)
   status_hour_off Status_Hour_off @default(Booked)
-  FieldID String @db.VarChar(36)
-  fields Fields @relation(fields: [FieldID], references: [field_id], onDelete: Cascade, onUpdate: NoAction)
+  FieldID         String          @db.VarChar(36)
+  fields          Fields          @relation(fields: [FieldID], references: [field_id], onDelete: Cascade, onUpdate: NoAction)
 }
 
 enum Status_Hour_on {
@@ -192,12 +188,12 @@ enum Status_Hour_off {
 }
 
 model Fields_Schedules {
-  schedule_id String @id @default(uuid()) @db.VarChar(36)
+  schedule_id String    @id @default(uuid()) @db.VarChar(36)
   day_of_week DayOfWeek
-  open_time DateTime @db.Time()
-  close_time DateTime @db.Time()
-  FieldID String @db.VarChar(36) @unique
-  fields Fields @relation(fields: [FieldID], references: [field_id], onDelete: Cascade, onUpdate: NoAction)
+  open_time   DateTime  @db.Time()
+  close_time  DateTime  @db.Time()
+  FieldID     String    @unique @db.VarChar(36)
+  fields      Fields    @relation(fields: [FieldID], references: [field_id], onDelete: Cascade, onUpdate: NoAction)
 }
 
 enum DayOfWeek {
@@ -211,10 +207,10 @@ enum DayOfWeek {
 }
 
 model Promotions {
-  promotion_id String @id @default(uuid()) @db.VarChar(36)
-  discount Decimal
-  start_date DateTime
-  end_date DateTime
-  FieldID String @db.VarChar(36) @unique
-  fields Fields @relation(fields: [FieldID], references: [field_id], onDelete: Cascade, onUpdate: NoAction)
+  promotion_id String   @id @default(uuid()) @db.VarChar(36)
+  discount     Decimal
+  start_date   DateTime
+  end_date     DateTime
+  FieldID      String   @unique @db.VarChar(36)
+  fields       Fields   @relation(fields: [FieldID], references: [field_id], onDelete: Cascade, onUpdate: NoAction)
 }

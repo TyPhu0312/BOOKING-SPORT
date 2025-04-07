@@ -14,22 +14,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="vi"> {/* Set the language attribute to Vietnamese */}
-      <head>
-        {/* Add meta tags or other head elements here */}
-      </head>
-      <body className="bg-gray-100 text-gray-800 font-sans overflow-x-hidden flex flex-col min-h-screen">
-        {/* Navbar */}
-        <Navbar />
-
-        {/* Nội dung từng page */}
+    <div className="bg-gray-100 text-gray-800 font-sans overflow-x-hidden flex flex-col min-h-screen">
+      <Navbar />
         <main className="flex-grow container-fluid mx-auto w-full">
           {children}
         </main>
-
-        {/* Footer */}
-        <Footer />
-      </body>
-    </html>
+        <Footer/>
+    </div>
   );
 }

@@ -76,17 +76,17 @@ const Navbar = () => {
                 {/* Nút bên phải */}
                 <div className="hidden md:flex items-center space-x-2 z-10">
                     <Link href={"/LoginForm"} className="cursor-pointer">
-                        <Button className="bg-white text-gray-800 border border-gray-300 hover:bg-black hover:text-white transition">
+                        <Button className="bg-white cursor-pointer text-gray-800 border border-gray-300 hover:bg-black hover:text-white transition">
                             Đăng nhập
                         </Button>
                     </Link>
                     <Link href={"/RegisterForm"} className="cursor-pointer">
-                        <Button className="bg-black text-white border border-transparent hover:bg-white hover:text-black hover:border-black transition">
+                        <Button className="bg-black cursor-pointer text-white border border-transparent hover:bg-white hover:text-black hover:border-black transition">
                             Đăng ký
                         </Button>
                     </Link>
                     <Link href={"/admin"} className="cursor-pointer">
-                        <Button className="bg-black text-white hover:bg-white hover:text-black hover:border-black transition">
+                        <Button className="bg-black cursor-pointer text-white hover:bg-white hover:text-black hover:border-black transition">
                             Admin
                         </Button>
                     </Link>

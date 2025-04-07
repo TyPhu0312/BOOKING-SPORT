@@ -58,14 +58,14 @@ const Navbar = () => {
                             </NavigationMenuItem>
 
                             <NavigationMenuItem>
-                                <Link href="/lien-he" legacyBehavior passHref>
+                                <Link href="/owner-fields/add-fields" legacyBehavior passHref>
                                     <NavigationMenuLink className="hover:text-black transition hover:font-bold">
                                         Trở thành chủ sân
                                     </NavigationMenuLink>
                                 </Link>
                             </NavigationMenuItem>
                             <NavigationMenuItem>
-                                <Link href="/gioithieu" legacyBehavior passHref>
+                                <Link href="/about" legacyBehavior passHref>
                                     <NavigationMenuLink className="hover:text-black transition hover:font-bold">
                                         Liên hệ
                                     </NavigationMenuLink>
@@ -109,12 +109,12 @@ const Navbar = () => {
                             Trang Chủ
                         </a>
                     </Link>
-                    <Link href="/dat-san" passHref legacyBehavior>
+                    <Link href="/" passHref legacyBehavior>
                         <a className="block text-gray-800 hover:text-black transition">
                             Tất cả sân
                         </a>
                     </Link>
-                    <Link href="/lien-he" passHref legacyBehavior>
+                    <Link href="/owner-fields/add-field" passHref legacyBehavior>
                         <a className="block text-gray-800 hover:text-black transition">
                             Trở thành chủ sân
                         </a>

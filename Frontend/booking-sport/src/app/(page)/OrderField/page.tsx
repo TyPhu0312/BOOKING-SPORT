@@ -1,23 +1,29 @@
 // BookingPage.jsx
-import React from 'react';
+
+"use client";
+import { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
+import axios from "axios";
 
 const BookingPage = () => {
-  // Thông tin sân
-  const field = {
-    name: 'Sân Bóng Đá Cần Giờ',
-    address: 'Ấp Dương Văn Hạnh, xã Lý Nhơn, huyện Cần Giuộc, thành phố Hồ Chí Minh',
-    owner: 'Nguyễn Thành Tỷ Phú',
-    capacity: 5,
-    price: '200.000 VND/giờ',
-    openingHours: '06:00 - 22:00',
-    rating: '4.5/5',
-    description: 'Sân bóng đá nhân tạo đạt chuẩn, có hệ thống đèn chiếu sáng hiện đại.',
-    amenities: [
-      'Cho thuê giày',
-      'Bán nước',
-      'Chỗ đỗ xe miễn phí'
-    ]
-  };
+
+  const searchParams = useSearchParams();
+  const field_id = searchParams.get("field_id");
+  const [field, setField] = useState<any>(null);
+  useEffect(() => {
+    const fetchField = async () => {
+      try {
+        const res = await axios.get(`http://localhost:5000/api/admin/fields/getById/${field_id}`);
+        setField(res.data);
+      } catch (error) {
+        console.error("Lỗi khi fetch sân:", error);
+      }
+    };
+
+    if (field_id) fetchField();
+  }, [field_id]);
+
+  if (!field) return <p className="text-center mt-20">Đang tải thông tin sân...</p>;
 
   // Tạo danh sách thời gian cho dropdown (từ 06:00 AM đến 10:00 PM, cách nhau 30 phút)
   const generateTimeOptions = () => {
@@ -32,8 +38,9 @@ const BookingPage = () => {
     }
     return times;
   };
-
+  
   const timeOptions = generateTimeOptions();
+
 
   return (
     <div className="w-[75%] mx-auto p-6 bg-gray-100 min-h-screen">
@@ -44,28 +51,27 @@ const BookingPage = () => {
 
       {/* Thông tin sân */}
       <div className="bg-white p-6 rounded-lg shadow-md mb-8">
-        <h2 className="text-2xl font-semibold text-gray-700 mb-4">{field.name}</h2>
+        <h2 className="text-2xl font-semibold text-gray-700 mb-4">{field.field_name}</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-gray-600">
           <div>
             <p className="flex items-center">
-              <span className="mr-2">📍</span> {field.address}
+              <span className="mr-2">📍</span> {field.location}
             </p>
             <p className="flex items-center">
-              <span className="mr-2">👤</span> Chủ sân: {field.owner}
+              <span className="mr-2">👤</span> Chủ sân: {field.user.username}
             </p>
             <p className="flex items-center">
-              <span className="mr-2">🏟️</span> Số lượng sân: {field.capacity}
+              <span className="mr-2">🏟️</span> Số lượng sân: {field.capacity|| "Không có"}
             </p>
           </div>
           <div>
             <p className="flex items-center">
-              <span className="mr-2">💰</span> Giá thuê: {field.price}
+              <span className="mr-2">💰</span> Giá thuê: {(field.Space_Per_Hour?.length
+                        ? Math.min(...field.Space_Per_Hour.map((sph: any) => sph.price))
+                        : 0).toLocaleString("vi-VN", { style: "currency", currency: "VND" })}
             </p>
             <p className="flex items-center">
-              <span className="mr-2">⏰</span> Giờ mở cửa: {field.openingHours}
-            </p>
-            <p className="flex items-center">
-              <span className="mr-2">⭐</span> Đánh giá: {field.rating}
+              <span className="mr-2">⏰</span> Giờ mở cửa: {(field.Fields_Schedule.open_time).substring(11, 16)}
             </p>
           </div>
         </div>
@@ -76,8 +82,7 @@ const BookingPage = () => {
         {/* Mô tả sân */}
         <div className="mb-6">
           <h3 className="text-xl font-semibold text-gray-700 flex items-center mb-4">
-            <span className="mr-2">📜</span> Mô tả sân
-            
+            <span className="mr-2">📜</span> Mô tả sân 
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-gray-600">
             <div>
@@ -85,7 +90,7 @@ const BookingPage = () => {
             </div>
             <div>
               <p className="flex items-center">
-                <span className="mr-2">⏰</span> Giờ mở cửa: {field.openingHours}
+                <span className="mr-2">⏰</span> Giờ đóng cửa: {(field.Fields_Schedule.close_time).substring(11, 16)}
               </p>
               <p className="flex items-center">
                 <span className="mr-2">⭐</span> Đánh giá: 4.7/5
@@ -95,7 +100,7 @@ const BookingPage = () => {
         </div>
 
         {/* Dịch vụ hữu ích */}
-        <div>
+        {/* <div>
           <h3 className="text-xl font-semibold text-gray-700 flex items-center mb-4">
             <span className="mr-2">🎉</span> Dịch vụ hữu ích
           </h3>
@@ -104,7 +109,7 @@ const BookingPage = () => {
               <li key={index}>{amenity}</li>
             ))}
           </ul>
-        </div>
+        </div> */}
       </div>
 
       {/* Form đặt sân */}

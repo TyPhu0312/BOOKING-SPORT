@@ -1,5 +1,9 @@
+"use client"
+
+
 import Image from "next/image";
 import { Button } from "@/components/ui/button"
+import { useRouter } from "next/navigation";
 
 // Định nghĩa kiểu dữ liệu cho stadium
 interface Stadium {
@@ -14,6 +18,10 @@ interface StadiumCardProps {
 }
 
 export default function StadiumCard({ stadium }: StadiumCardProps) {
+    const router = useRouter();
+    const handleBooking = () => {
+        router.push(`/OrderField?field_id=${stadium.id}`);
+      };
     return (
         <div className="bg-white shadow-md pb-2 rounded-lg w-[270px] h-auto">
             <Image
@@ -29,7 +37,7 @@ export default function StadiumCard({ stadium }: StadiumCardProps) {
                 <p className="text-green-600 font-bold">{stadium.price}</p>
             </div>
             <div className="m-auto cursor-pointer flex justify-center items-center">
-                <Button variant="outline" className="cursor-pointer">Đặt ngay</Button>
+                <Button onClick={handleBooking} variant="outline" className="cursor-pointer">Đặt ngay</Button>
             </div>
         </div>
     );

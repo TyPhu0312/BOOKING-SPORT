@@ -1,6 +1,7 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Input } from "@/components/ui/input";
@@ -20,15 +21,110 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import HeartButton from "@/components/features/heart-button";
 import RatingStar from "@/components/features/ratingStar";
 import TimeSlotGrid from "@/components/features/TimeSlotGrid";
+// import { useRouter } from "next/router";
+import { useParams } from 'next/navigation';
+
+
+interface Space_Per_Hour {
+    space_per_hour_id: string;
+    from_hour_value: string;
+    to_hour_value: string;
+    price: number;
+    FieldID: string;
+}
+
+interface FieldDetail {
+    field_id: string;
+    field_name: string;
+    half_hour: boolean;
+    location: string;
+    description: string;
+    status: string;
+    image_url: string;
+    create_at: string;
+    OwnerID: string;
+    CategoryID: string;
+    OptionID: string;
+    user: {
+        user_id: string;
+        username: string;
+        passWord: string;
+        email: string;
+        phone_number: string;
+        create_at: string;
+        roleID: string;
+    };
+    category: {
+        category_id: string;
+        category_name: string;
+    };
+    option: {
+        option_field_id: string;
+        number_of_field: string;
+        CategoryID: string;
+    };
+    Reviews: {
+        review_id: string;
+        rating: number;
+        comment: string;
+        create_at: string;
+        UserID: string;
+        FieldID: string;
+    }[];
+    Booking: {
+        booking_id: string;
+        booking_date: string;
+        time_start: string;
+        time_end: string;
+        total_price: string;
+        deposit: string;
+        Status: string;
+        prove_payment: string;
+        UserID: string;
+        FieldID: string;
+    }[];
+    Space_Per_Hour: {
+        space_per_hour_id: string;
+        from_hour_value: string;
+        to_hour_value: string;
+        price: number;
+        FieldID: string;
+    }[];
+    Hours: {
+        hours_id: string;
+        hour_value: number;
+        status_hour_on: string;
+        status_hour_off: string;
+        FieldID: string;
+    }[];
+    Fields_Schedule: {
+        schedule_id: string;
+        day_of_week: string;
+        open_time: string;
+        close_time: string;
+        FieldID: string;
+    };
+    Promotions: {
+        promotion_id: string;
+        discount: string;
+        start_date: string;
+        end_date: string;
+        FieldID: string;
+    }[];
+}
 
 
 const FieldDetail = () => {
+    const router = useRouter();
+    const { id } = useParams();
+    const field_id = id as string;
+
     const [form, setForm] = useState({
         name: "",
         email: "",
         phone: "",
         date: new Date(),
-        duration: "1.5",
+        duration: "1",
         note: "",
         startTime: "",
     });
@@ -43,7 +139,6 @@ const FieldDetail = () => {
         date: string;
         slots: TimeSlot[];
     }
-
     const generateDaySlot = (dayLabel: string, date: string): DaySlot => {
         const slots = Array.from({ length: 24 }, (_, i) => {
             const hourStr = String(i).padStart(2, '0') + ":00";
@@ -66,18 +161,23 @@ const FieldDetail = () => {
 
     const schedule: DaySlot[] = [
         generateDaySlot("Monday", "2025-04-08"),
-        generateDaySlot("Tuesday", "2025-04-09")
+        generateDaySlot("Tuesday", "2025-04-09"),
+        generateDaySlot("Wednesday", "2025-04-10"),
+        generateDaySlot("Thursday", "2025-04-11"),
+        generateDaySlot("Friday", "2025-04-12"),
+        generateDaySlot("Saturday", "2025-04-13"),
+        generateDaySlot("Sunday", "2025-04-14"),
+        generateDaySlot("Monday", "2025-04-15"),
+        generateDaySlot("Tuesday", "2025-04-16"),
+        generateDaySlot("Wednesday", "2025-04-17"),
+        generateDaySlot("Thursday", "2025-04-18"),
+        generateDaySlot("Friday", "2025-04-19"),
+        generateDaySlot("Saturday", "2025-04-20"),
+        generateDaySlot("Sunday", "2025-04-21"),
     ];
+
     const [images, setImages] = useState<string[]>([]);
-    const [fieldInfo, setFieldInfo] = useState<{
-        name: string;
-        address: string;
-        rating: number;
-        openTime: string;
-        numberOfFields: number;
-        price: string;
-        services: { icon: JSX.Element; text: string }[];
-    } | null>(null);
+    const [fieldInfo, setFieldInfo] = useState<FieldDetail | null>(null);
 
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
     // Dữ liệu giả
@@ -111,13 +211,25 @@ const FieldDetail = () => {
             } catch (error) {
                 console.error("Lỗi fetch dữ liệu:", error);
                 setImages(fakeImages);
-                setFieldInfo(fakeFieldInfo);
             }
         };
 
         fetchFieldData();
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
+
+    useEffect(() => {
+        const fetchField = async () => {
+            try {
+                const res = await axios.get(`http://localhost:5000/api/admin/fields/getById/${field_id}`);
+                setFieldInfo(res.data);
+            } catch (error) {
+                console.error("Lỗi khi fetch sân:", error);
+            }
+        };
+
+        if (field_id) fetchField();
+    }, [field_id]);
     const handleSubmit = async () => {
         try {
             await axios.post("/api/book", form);
@@ -131,17 +243,17 @@ const FieldDetail = () => {
     const prevImage = () => setCurrentImageIndex((prev) => (prev - 1 + images.length) % images.length);
     const nextImage = () => setCurrentImageIndex((prev) => (prev + 1) % images.length);
 
-    if (!fieldInfo) return null; // Có thể thêm spinner nếu muốn
+    if (!fieldInfo) return <p className="text-center mt-20">Đang tải thông tin sân...</p>;
 
     return (
         <div className="mt-[70px] flex-col bg-white h-auto w-full">
             {/* Fields Info */}
             <div className="flex bg-white flex-col md:flex-row gap-10 items-start justify-start pt-[30px] pb-[30px]">
                 <div className="flex flex-col gap-3 items-start text-center md:items-start md:pl-[190px]">
-                    <h1 className="pl-[20px] text-3xl font-bold md:text-3xl md:pl-7">{fieldInfo.name}</h1>
+                    <h1 className="pl-[20px] text-3xl font-bold md:text-3xl md:pl-7">{fieldInfo?.field_name}</h1>
                     <div className="flex items-center gap-2 md:pl-6">
                         <FaMapMarkerAlt size={24} className="text-red-500 ml-[20px] md:ml-[0px]" />
-                        <h3 className="text-md ">{fieldInfo.address}</h3>
+                        <h3 className="text-md ">{fieldInfo?.location}</h3>
                     </div>
                 </div>
 
@@ -187,8 +299,8 @@ const FieldDetail = () => {
 
                 <div className=" md:1/3 p-4 w-full md:max-w-[500px] md:w-2/4 h-auto rounded-lg flex-col justify-center gap-1 flex">
                     <Button
-                        className="bg-black text-xl text-white hover:bg-gray-900 cursor-pointer w-auto mb-2 block md:hidden"
-                        onClick={() => alert("Đặt sân thành công!")}
+                        className="bg-black text-xl text-white hover:bg-gray-900 cursor-pointer mb-4 w-full md:w-auto block md:hidden"
+                        onClick={() => router.push("/OrderField")}
                     >
                         Đặt sân ngay
                     </Button>
@@ -196,36 +308,41 @@ const FieldDetail = () => {
                     <div className="space-y-2 text-sm text-gray-700 mt-4">
                         <div className="flex justify-between">
                             <span className="font-bold text-[18px]">Giờ mở cửa:</span>
-                            <span className="text-gray-600 text-[18px]">{fieldInfo.openTime}</span>
+                            <span className="text-gray-600 text-[18px]">{(fieldInfo.Fields_Schedule.open_time).substring(11, 16)}</span>
                         </div>
                         <div className="flex justify-between">
                             <span className="font-bold text-[18px]">Số lượng sân:</span>
-                            <span className="text-gray-600 text-[18px]">{fieldInfo.numberOfFields} sân</span>
+                            <span className="text-gray-600 text-[18px]">{fieldInfo?.option?.number_of_field ?? 1} sân</span>
                         </div>
                         <div className="flex justify-between">
                             <span className="font-bold text-[18px]">Giá sân:</span>
-                            <span className="text-gray-600 text-[18px]">{fieldInfo.price}</span>
+                            <span className="text-gray-600 text-[18px]">{(fieldInfo.Space_Per_Hour?.length
+                                ? Math.min(...fieldInfo.Space_Per_Hour.map((sph: any) => sph.price))
+                                : 0).toLocaleString("vi-VN", { style: "currency", currency: "VND" })}</span>
                         </div>
                     </div>
                     <div className="mt-5">
                         <p className="font-bold">✔ Dịch vụ tiện ích:</p>
-                        <ul className="grid mt-3 grid-cols-2 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-2 pl-6">
+                        {/* <ul className="grid mt-3 grid-cols-2 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-2 pl-6">
                             {fieldInfo.services.map((service, idx) => (
                                 <li key={idx} className="flex items-center justify-center text-center gap-2 p-2 bg-gray-300 h-[50px] rounded-md mb-2 max-w-[160px] w-full">
                                     {service.icon}
                                     {service.text}
                                 </li>
                             ))}
-                        </ul>
+                        </ul> */}
                         <div className="flex justify-center md:flex-row md:items-center md:justify-center gap-15 md:gap-5 mt-5 md:mt-5 w-full md:w-auto pr-5">
                             <div className="flex items-center justify-center flex-col gap-2">
-                                <p>Đánh giá</p>
-                                <RatingStar initialRating={fieldInfo.rating} totalStars={5} />
+                                <span className="mr-2">⭐ Đánh giá: 4.7/5</span> 
+                                {/* <RatingStar initialRating={fieldInfo.rating} totalStars={5} /> */}
                             </div>
                             <HeartButton size={30} className="mb-2 md:mb-4 flex items-center justify-center" />
                         </div>
                     </div>
-                    <Button className="bg-black text-xl text-white hover:bg-gray-900 cursor-pointer w-full md:w-auto mt-4" onClick={() => alert("Đặt sân thành công!")}>
+                    <Button
+                        className="bg-black text-xl text-white hover:bg-gray-900 cursor-pointer w-full md:w-auto mt-4 hidden md:block"
+                        onClick={() => router.push(`/OrderField/?field_id=${field_id}`)}
+                    >
                         Đặt sân ngay
                     </Button>
                 </div>
@@ -265,6 +382,7 @@ const FieldDetail = () => {
                                         <SelectValue placeholder="Chọn thời lượng" />
                                     </SelectTrigger>
                                     <SelectContent>
+                                    <SelectItem value="1">1 giờ</SelectItem>
                                         <SelectItem value="1.5">1.5 giờ</SelectItem>
                                         <SelectItem value="2">2 giờ</SelectItem>
                                         <SelectItem value="2.5">2.5 giờ</SelectItem>
@@ -285,7 +403,9 @@ const FieldDetail = () => {
                 {/* Schedule */}
                 <div className="p-4 space-y-4">
                     <h1 className="text-2xl font-bold">Chi tiết sân</h1>
-                    <TimeSlotGrid schedule={schedule} />
+                    <div className="w-full overflow-x-auto">
+                        <TimeSlotGrid schedule={schedule} />
+                    </div>
                 </div>
             </div>
         </div>

@@ -16,7 +16,6 @@ import routerFieldsSchedules from './router/fields_schedules.router';
 import routerFields from './router/fields.router';
 import routerHours from './router/hours.router';
 import routerOptionFields from './router/option_fields.router';
-
 import routerPayments from './router/payments.router';
 import routerPromotions from './router/promotions.router';
 import routerReviews from './router/reviews.router';
@@ -48,7 +47,6 @@ app.use('/api/admin/fieldschedules', routerFieldsSchedules);
 app.use('/api/admin/fields', routerFields);
 app.use('/api/admin/hours', routerHours);
 app.use('/api/admin/optionfields', routerOptionFields);
-
 app.use('/api/admin/payments', routerPayments);
 app.use('/api/admin/promotions', routerPromotions);
 app.use('/api/admin/reviews', routerReviews);

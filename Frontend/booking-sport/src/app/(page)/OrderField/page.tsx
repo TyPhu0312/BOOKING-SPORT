@@ -5,11 +5,101 @@ import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import axios from "axios";
 
+interface Space_Per_Hour {
+  space_per_hour_id: string;
+  from_hour_value: string;
+  to_hour_value: string;
+  price: number;
+  FieldID: string;
+}
+
+interface FieldDetail {
+  field_id: string;
+  field_name: string;
+  half_hour: boolean;
+  location: string;
+  description: string;
+  status: string;
+  image_url: string;
+  create_at: string;
+  OwnerID: string;
+  CategoryID: string;
+  OptionID: string;
+  user: {
+    user_id: string;
+    username: string;
+    passWord: string;
+    email: string;
+    phone_number: string;
+    create_at: string;
+    roleID: string;
+  };
+  category: {
+    category_id: string;
+    category_name: string;
+  };
+  option: {
+    option_field_id: string;
+    number_of_field: string;
+    CategoryID: string;
+  };
+  Reviews: {
+    review_id: string;
+    rating: number;
+    comment: string;
+    create_at: string;
+    UserID: string;
+    FieldID: string;
+  }[];
+  Booking: {
+    booking_id: string;
+    booking_date: string;
+    time_start: string;
+    time_end: string;
+    total_price: string;
+    deposit: string;
+    Status: string;
+    prove_payment: string;
+    UserID: string;
+    FieldID: string;
+  }[];
+  Space_Per_Hour: {
+    space_per_hour_id: string;
+    from_hour_value: string;
+    to_hour_value: string;
+    price: number;
+    FieldID: string;
+  }[];
+  Hours: {
+    hours_id: string;
+    hour_value: number;
+    status_hour_on: string;
+    status_hour_off: string;
+    FieldID: string;
+  }[];
+  Fields_Schedule: {
+    schedule_id: string;
+    day_of_week: string;
+    open_time: string;
+    close_time: string;
+    FieldID: string;
+  };
+  Promotions: {
+    promotion_id: string;
+    discount: string;
+    start_date: string;
+    end_date: string;
+    FieldID: string;
+  }[];
+}
+
+
 const BookingPage = () => {
 
   const searchParams = useSearchParams();
   const field_id = searchParams.get("field_id");
-  const [field, setField] = useState<any>(null);
+  const [field, setField] = useState<FieldDetail | null>(null);
+
   useEffect(() => {
     const fetchField = async () => {
       try {
@@ -38,7 +128,7 @@ const BookingPage = () => {
     }
     return times;
   };
-  
+
   const timeOptions = generateTimeOptions();
 
 
@@ -61,14 +151,14 @@ const BookingPage = () => {
               <span className="mr-2">👤</span> Chủ sân: {field.user.username}
             </p>
             <p className="flex items-center">
-              <span className="mr-2">🏟️</span> Số lượng sân: {field.capacity|| "Không có"}
+              <span className="mr-2">🏟️</span> Trạng thái sân: {field.status || "Không có"}
             </p>
           </div>
           <div>
             <p className="flex items-center">
               <span className="mr-2">💰</span> Giá thuê: {(field.Space_Per_Hour?.length
-                        ? Math.min(...field.Space_Per_Hour.map((sph: any) => sph.price))
-                        : 0).toLocaleString("vi-VN", { style: "currency", currency: "VND" })}
+                ? Math.min(...field.Space_Per_Hour.map((sph: any) => sph.price))
+                : 0).toLocaleString("vi-VN", { style: "currency", currency: "VND" })}
             </p>
             <p className="flex items-center">
               <span className="mr-2">⏰</span> Giờ mở cửa: {(field.Fields_Schedule.open_time).substring(11, 16)}
@@ -82,7 +172,7 @@ const BookingPage = () => {
         {/* Mô tả sân */}
         <div className="mb-6">
           <h3 className="text-xl font-semibold text-gray-700 flex items-center mb-4">
-            <span className="mr-2">📜</span> Mô tả sân 
+            <span className="mr-2">📜</span> Mô tả sân
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-gray-600">
             <div>

@@ -1,6 +1,7 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Input } from "@/components/ui/input";
@@ -43,7 +44,7 @@ const FieldDetail = () => {
         date: string;
         slots: TimeSlot[];
     }
-
+    const router = useRouter();
     const generateDaySlot = (dayLabel: string, date: string): DaySlot => {
         const slots = Array.from({ length: 24 }, (_, i) => {
             const hourStr = String(i).padStart(2, '0') + ":00";
@@ -66,8 +67,21 @@ const FieldDetail = () => {
 
     const schedule: DaySlot[] = [
         generateDaySlot("Monday", "2025-04-08"),
-        generateDaySlot("Tuesday", "2025-04-09")
+        generateDaySlot("Tuesday", "2025-04-09"),
+        generateDaySlot("Wednesday", "2025-04-10"),
+        generateDaySlot("Thursday", "2025-04-11"),
+        generateDaySlot("Friday", "2025-04-12"),
+        generateDaySlot("Saturday", "2025-04-13"),
+        generateDaySlot("Sunday", "2025-04-14"),
+        generateDaySlot("Monday", "2025-04-15"),
+        generateDaySlot("Tuesday", "2025-04-16"),
+        generateDaySlot("Wednesday", "2025-04-17"),
+        generateDaySlot("Thursday", "2025-04-18"),
+        generateDaySlot("Friday", "2025-04-19"),
+        generateDaySlot("Saturday", "2025-04-20"),
+        generateDaySlot("Sunday", "2025-04-21"),
     ];
+
     const [images, setImages] = useState<string[]>([]);
     const [fieldInfo, setFieldInfo] = useState<{
         name: string;
@@ -187,8 +201,8 @@ const FieldDetail = () => {
 
                 <div className=" md:1/3 p-4 w-full md:max-w-[500px] md:w-2/4 h-auto rounded-lg flex-col justify-center gap-1 flex">
                     <Button
-                        className="bg-black text-xl text-white hover:bg-gray-900 cursor-pointer w-auto mb-2 block md:hidden"
-                        onClick={() => alert("Đặt sân thành công!")}
+                        className="bg-black text-xl text-white hover:bg-gray-900 cursor-pointer mb-4 w-full md:w-auto block md:hidden"
+                        onClick={() => router.push("/OrderField")}
                     >
                         Đặt sân ngay
                     </Button>
@@ -225,7 +239,10 @@ const FieldDetail = () => {
                             <HeartButton size={30} className="mb-2 md:mb-4 flex items-center justify-center" />
                         </div>
                     </div>
-                    <Button className="bg-black text-xl text-white hover:bg-gray-900 cursor-pointer w-full md:w-auto mt-4" onClick={() => alert("Đặt sân thành công!")}>
+                    <Button
+                        className="bg-black text-xl text-white hover:bg-gray-900 cursor-pointer w-full md:w-auto mt-4 hidden md:block"
+                        onClick={() => router.push("/OrderField")}
+                    >
                         Đặt sân ngay
                     </Button>
                 </div>
@@ -285,7 +302,9 @@ const FieldDetail = () => {
                 {/* Schedule */}
                 <div className="p-4 space-y-4">
                     <h1 className="text-2xl font-bold">Chi tiết sân</h1>
-                    <TimeSlotGrid schedule={schedule} />
+                    <div className="w-full overflow-x-auto">
+                        <TimeSlotGrid schedule={schedule} />
+                    </div>
                 </div>
             </div>
         </div>

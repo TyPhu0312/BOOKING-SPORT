@@ -371,7 +371,6 @@ export default function User() {
                                             <TableCell className="font-medium">{user.username}</TableCell>
                                             <TableCell>{user.email}</TableCell>
                                             <TableCell className="font-medium">{user.phone_number}</TableCell>
-                                            <TableCell className="font-medium hidden">{user.passWord}</TableCell>
                                             <TableCell>
                                                 <DropdownMenu>
                                                     <DropdownMenuTrigger asChild>

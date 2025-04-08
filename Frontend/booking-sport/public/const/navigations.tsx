@@ -1,4 +1,4 @@
-import { Home, Package, PackageOpen, ShoppingCart, Ticket, Users } from 'lucide-react'
+import { Home, Package, ShoppingCart, Ticket, Users, ClipboardList } from 'lucide-react'
 
 export const DASHBOARD_SIDEBAR_LINKS = [
     {
@@ -20,16 +20,16 @@ export const DASHBOARD_SIDEBAR_LINKS = [
         icon: <Package />
     },
     {
-        key: 'Products',
-        label: 'Review',
-        path: '/admin/products',
-        icon: <PackageOpen />
+        key: 'Booking',
+        label: 'Booking',
+        path: '/admin/booking',
+        icon: <ShoppingCart />
     },
     {
-        key: 'Orders',
-        label: 'Booking',
-        path: '/admin/orders',
-        icon: <ShoppingCart />
+        key: 'Payments',
+        label: 'Payments',
+        path: '/admin/payments',
+        icon: <ClipboardList />
     },
     {
         key: 'Coupon',

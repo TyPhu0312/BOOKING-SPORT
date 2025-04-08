@@ -15,13 +15,20 @@ export const createUser = async (req: any, res: any) => {
             return res.status(400).json({ error: 'Địa chỉ email không hợp lệ' });
         }
         const hashedPassword = createHash('sha3-512').update(passWord).digest('hex');
+        // Tìm role "customer"
+        const customerRole = await prisma.role.findFirst({
+            where: { roleName: "Customer" },
+        });
+        if (!customerRole) {
+            return res.status(500).json({ error: "Không tìm thấy vai trò 'customer'" });
+          }
         const newUser = await prisma.user.create({
             data: {
                 username,
-                passWord,
+                passWord: hashedPassword,
                 email,
                 phone_number,
-                roleID: String(roleID), // CHỈNH CHỖ NÀY
+                roleID: String(customerRole.role_id),
                 create_at: new Date(),
             },
         });
@@ -142,29 +149,33 @@ export const deleteUser = async (req: any, res: any) => {
 };
 export const loginUser = async (req: any, res: any) => {
     try {
-        const { username, passWord } = req.body;
-        console.log("Dữ liệu đăng nhập nhận được:", req.body);
-
-        if (!username || !passWord) {
-            return res.status(400).json({ error: "Thiếu tên đăng nhập hoặc mật khẩu" });
-        }
-
-        const user = await prisma.user.findFirst({
-            where: { username }
-        });
-
-        if (!user) {
-            return res.status(404).json({ error: "Tài khoản không tồn tại" });
-        }
-
-        // So sánh trực tiếp password không mã hóa
-        if (user.passWord !== passWord) {
-            return res.status(401).json({ error: "Mật khẩu không đúng" });
-        }
-
-        return res.status(200).json({ message: "Đăng nhập thành công", user });
+      const { username, passWord } = req.body;
+  
+      // Tìm user trong database
+      const user = await prisma.user.findFirst({
+        where: { username },
+      });
+  
+      if (!user) {
+        return res.status(400).json({ error: "Không tìm thấy người dùng" });
+      }
+  
+      // Băm mật khẩu người dùng vừa nhập
+      const hashedInputPassword = createHash("sha3-512").update(passWord).digest("hex");
+  
+      // So sánh với mật khẩu đã lưu trong DB
+      if (user.passWord !== hashedInputPassword) {
+        return res.status(401).json({ error: "Sai mật khẩu" });
+      }
+  
+      // Đăng nhập thành công
+      return res.status(200).json({
+        message: "Đăng nhập thành công",
+        user_id: user.user_id, // trả về user_id để lưu ở client
+      });
+  
     } catch (error: any) {
-        console.error("Lỗi trong loginUser:", error);
-        return res.status(500).json({ error: "Lỗi máy chủ" });
+      console.error(error);
+      return res.status(500).json({ error: "Lỗi máy chủ" });
     }
-};
+  };

@@ -53,9 +53,7 @@ import {
     TabsTrigger,
 } from "@/components/ui/tabs"
 import axios from "axios"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { toast, useToast } from "@/components/ui/use-toast"
+import { toast } from "@/components/ui/use-toast"
 import { Toaster } from "@/components/ui/toaster"
 
 interface Booking {

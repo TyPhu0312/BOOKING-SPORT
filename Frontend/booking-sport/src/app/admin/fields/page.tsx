@@ -69,6 +69,13 @@ interface Field {
     create_at: string;
     user: owner;
     category: Category;
+    option: Option;
+}
+
+interface Option{
+    option_field_id: string;
+    number_of_field: string;
+    category: Category;
 }
 
 interface Category {
@@ -269,6 +276,7 @@ export default function Field() {
                                         <TableHead>Location</TableHead>
                                         <TableHead>Description</TableHead>
                                         <TableHead>status</TableHead>
+                                        <TableHead>Field Option</TableHead>
                                         <TableHead>Half hour</TableHead>
                                         <TableHead>
                                             <span className="sr-only">Actions</span>
@@ -304,6 +312,9 @@ export default function Field() {
                                             </TableCell>
                                             <TableCell className="font-medium">
                                                 {Field.status}
+                                            </TableCell>
+                                            <TableCell className="font-medium">
+                                                {Field.option.number_of_field}
                                             </TableCell>
                                             <TableCell className="font-medium">
                                                 {Field.half_hour ? 'Có' : 'Không'}

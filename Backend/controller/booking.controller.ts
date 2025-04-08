@@ -6,7 +6,7 @@ const prisma = new PrismaClient();
 export const getAllBookings = async (req: any, res: any) => {
   try {
     const bookings = await prisma.booking.findMany({
-      include: { user: true, fields: true, Payment_Bookings: true },
+      include: { user: true, fields: true },
     });
     res.status(200).json(bookings);
   } catch (error: any) {
@@ -21,7 +21,7 @@ export const getBookingById = async (req: any, res: any) => {
     const { id } = req.params;
     const booking = await prisma.booking.findUnique({
       where: { booking_id: id },
-      include: { user: true, fields: true, Payment_Bookings: true },
+      include: { user: true, fields: true },
     });
     if (!booking) return res.status(404).json({ error: 'Không tìm thấy booking' });
     res.status(200).json(booking);

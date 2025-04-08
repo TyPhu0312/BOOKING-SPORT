@@ -18,6 +18,8 @@ model Role {
   roleName RoleName @default(Customer)
 
   users User[]
+
+  @@map("role")
 }
 
 enum RoleName {
@@ -37,12 +39,11 @@ model User {
   role         Role     @relation(fields: [roleID], references: [role_id], onDelete: Cascade, onUpdate: NoAction)
 
   Bank_accounts Bank_account[]
+  Bookings      Booking[]
+  Fields        Fields[]
+  Reviews       Reviews[]
 
-  Bookings Booking[]
-
-  Fields Fields[]
-
-  Reviews Reviews[]
+  @@map("user")
 }
 
 model Bank_account {
@@ -51,6 +52,8 @@ model Bank_account {
   bank_account_name   String @db.VarChar(30)
   UserID              String @db.Char(36)
   user                User   @relation(fields: [UserID], references: [user_id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@map("bank_account")
 }
 
 model Payments {
@@ -62,6 +65,8 @@ model Payments {
   isDeposit    Boolean
   BookingID    String          @db.VarChar(36)
   booking      Booking         @relation(fields: [BookingID], references: [booking_id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@map("payments")
 }
 
 enum Payments_Method {
@@ -89,6 +94,8 @@ model Booking {
   fields        Fields         @relation(fields: [FieldID], references: [field_id], onDelete: Cascade, onUpdate: NoAction)
 
   Payments Payments[]
+
+  @@map("booking")
 }
 
 enum Booking_Status {
@@ -101,9 +108,10 @@ model Category {
   category_id   String @id @default(uuid()) @db.VarChar(36)
   category_name String @db.VarChar(30)
 
-  Fields Fields[]
-
+  Fields        Fields[]
   Option_Fields Option_Fields[]
+
+  @@map("category")
 }
 
 model Option_Fields {
@@ -113,10 +121,12 @@ model Option_Fields {
   category        Category @relation(fields: [CategoryID], references: [category_id], onDelete: Cascade, onUpdate: NoAction)
 
   Fields Fields[]
+
+  @@map("option_fields")
 }
 
 model Fields {
-  field_id    String        @id @default(uuid()) @db.VarChar(36)
+field_id    String        @id @default(uuid()) @db.VarChar(36)
   field_name  String        @db.VarChar(30)
   half_hour   Boolean
   location    String        @db.VarChar(30)
@@ -131,17 +141,14 @@ model Fields {
   OptionID    String        @db.VarChar(36)
   option      Option_Fields @relation(fields: [OptionID], references: [option_field_id], onDelete: Cascade, onUpdate: NoAction)
 
-  Reviews Reviews[]
+  Reviews          Reviews[]
+  Booking          Booking[]
+  Space_Per_Hour   Space_Per_Hour[]
+  Hours            Hours[]
+  Fields_Schedule  Fields_Schedules?
+  Promotions       Promotions[]
 
-  Booking Booking[]
-
-  Space_Per_Hour Space_Per_Hour[]
-
-  Hours Hours[]
-
-  Fields_Schedule Fields_Schedules?
-
-  Promotions Promotions[]
+  @@map("fields")
 }
 
 enum Fields_status {
@@ -158,6 +165,8 @@ model Reviews {
   user      User     @relation(fields: [UserID], references: [user_id], onDelete: Cascade, onUpdate: NoAction)
   FieldID   String   @db.VarChar(36)
   fields    Fields   @relation(fields: [FieldID], references: [field_id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@map("reviews")
 }
 
 model Space_Per_Hour {
@@ -167,6 +176,8 @@ model Space_Per_Hour {
   price             Float
   FieldID           String @db.VarChar(36)
   fields            Fields @relation(fields: [FieldID], references: [field_id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@map("space_per_hour")
 }
 
 model Hours {
@@ -176,6 +187,8 @@ model Hours {
   status_hour_off Status_Hour_off @default(Booked)
   FieldID         String          @db.VarChar(36)
   fields          Fields          @relation(fields: [FieldID], references: [field_id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@map("hours")
 }
 
 enum Status_Hour_on {
@@ -194,6 +207,8 @@ model Fields_Schedules {
   close_time  DateTime  @db.Time()
   FieldID     String    @unique @db.VarChar(36)
   fields      Fields    @relation(fields: [FieldID], references: [field_id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@map("fields_schedules")
 }
 
 enum DayOfWeek {
@@ -213,4 +228,6 @@ model Promotions {
   end_date     DateTime
   FieldID      String   @unique @db.VarChar(36)
   fields       Fields   @relation(fields: [FieldID], references: [field_id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@map("promotions")
 }

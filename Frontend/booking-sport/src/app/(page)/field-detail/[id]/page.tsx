@@ -16,15 +16,12 @@ import {
 import axios from "axios";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import Image from "next/image";
-import { FaMapMarkerAlt, FaWifi, FaBasketballBall, FaCookieBite, FaCoffee, FaCar } from "react-icons/fa";
+import { FaMapMarkerAlt } from "react-icons/fa";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import HeartButton from "@/components/features/heart-button";
-import RatingStar from "@/components/features/ratingStar";
 import TimeSlotGrid from "@/components/features/TimeSlotGrid";
 // import { useRouter } from "next/router";
 import { useParams } from 'next/navigation';
-
-
 interface Space_Per_Hour {
     space_per_hour_id: string;
     from_hour_value: string;
@@ -182,7 +179,7 @@ const FieldDetail = () => {
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
     // Dữ liệu giả
     const fakeImages = ["/images/stadium.jpg", "/images/stadium.jpg", "/images/stadium.jpg", "/images/stadium.jpg", "/images/stadium.jpg"];
-    const fakeFieldInfo = {
+    /* const fakeFieldInfo = {
         name: "Sân cầu lông Quỳnh Anh Shyn",
         address: "Đường Cao Lỗ, Phường 4, Quận 8, Hồ Chí Minh",
         rating: 4,
@@ -197,7 +194,7 @@ const FieldDetail = () => {
             { icon: <FaCoffee className="text-brown-500" />, text: "Trà đá" },
             { icon: <FaCar className="text-gray-500" />, text: "Bãi đỗ xe ô tô" },
         ],
-    };
+    }; */
     useEffect(() => {
         const fetchFieldData = async () => {
             try {
@@ -317,7 +314,7 @@ const FieldDetail = () => {
                         <div className="flex justify-between">
                             <span className="font-bold text-[18px]">Giá sân:</span>
                             <span className="text-gray-600 text-[18px]">{(fieldInfo.Space_Per_Hour?.length
-                                ? Math.min(...fieldInfo.Space_Per_Hour.map((sph: any) => sph.price))
+                                ? Math.min(...fieldInfo.Space_Per_Hour.map((sph: Space_Per_Hour) => sph.price))
                                 : 0).toLocaleString("vi-VN", { style: "currency", currency: "VND" })}</span>
                         </div>
                     </div>

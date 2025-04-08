@@ -4,6 +4,8 @@
 import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import axios from "axios";
+import { Button } from "@/components/ui/button";
+import { useRouter } from "next/navigation";
 
 interface Space_Per_Hour {
   space_per_hour_id: string;
@@ -95,7 +97,7 @@ interface FieldDetail {
 
 
 const BookingPage = () => {
-
+  const router = useRouter();
   const searchParams = useSearchParams();
   const field_id = searchParams.get("field_id");
   const [field, setField] = useState<FieldDetail | null>(null);
@@ -128,6 +130,19 @@ const BookingPage = () => {
     }
     return times;
   };
+
+  const handleSubmit = async () => {
+    try {
+        await axios.post("/api/book");
+        alert("Đặt sân thành công!");
+        router.push(`/page`);
+    } catch (err) {
+        console.error("Lỗi khi đặt sân", err);
+        alert("Đặt sân thất bại");
+        
+        
+    }
+};
 
   const timeOptions = generateTimeOptions();
 
@@ -244,12 +259,13 @@ const BookingPage = () => {
             </div>
           </div>
         </div>
-        <button
+        <Button
+          onClick={handleSubmit}
           type="submit"
           className="w-full mt-6 bg-blue-600 text-white p-2 rounded-md hover:bg-blue-700 transition duration-200"
         >
           Xác nhận đặt sân
-        </button>
+        </Button>
       </form>
 
       {/* Thông tin thanh toán */}

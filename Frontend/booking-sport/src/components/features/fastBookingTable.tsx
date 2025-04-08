@@ -4,11 +4,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { CalendarIcon } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { format } from "date-fns";
 import Image from "next/image";
 export default function FastBookingTable({ onSearch }: { onSearch: () => void }) {
-    const [date, setDate] = useState<Date | undefined>(new Date());
+    const [date, setDate] = useState<Date | undefined>(undefined);
     const [startTime, setStartTime] = useState("13:30 PM");
     const [endTime, setEndTime] = useState("17:30 PM");
     const [city, setCity] = useState("hcm");
@@ -18,7 +18,9 @@ export default function FastBookingTable({ onSearch }: { onSearch: () => void })
     const [fieldSize, setFieldSize] = useState("san5");
     const [minPrice, setMinPrice] = useState("150.000 VNĐ");
     const [maxPrice, setMaxPrice] = useState("450.000 VNĐ");
-
+    useEffect(() => {
+        setDate(new Date());
+    }, []);
     return (
         <div className="w-[400px] md:w-[600px] m-auto bg-white shadow-lg flex flex-col items-center overflow-hidden">
             <div className="relative w-full h-[70px] overflow-hidden">

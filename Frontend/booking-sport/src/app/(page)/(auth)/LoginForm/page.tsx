@@ -4,10 +4,10 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import axios from "axios";
 import { FaUser, FaLock } from "react-icons/fa";
-
+import { useAuth } from "@/app/context/AuthContext";
 export default function LoginForm() {
   const router = useRouter();
-
+  const { login } = useAuth();
   const [formData, setFormData] = useState({
     username: "",
     password: "",
@@ -28,7 +28,7 @@ export default function LoginForm() {
   };
 
   useEffect(() => {
-    const login = async () => {
+    const handleLogin = async () => {
       try {
         const response = await axios.post("http://localhost:5000/api/admin/user/login", {
           username: formData.username,
@@ -37,9 +37,12 @@ export default function LoginForm() {
 
         if (response.status === 200) {
           alert("Đăng nhập thành công!");
-          localStorage.setItem("user_id", response.data.user_id);
-          router.push('/');
+          sessionStorage.setItem("shouldReload", "true");
+          login({ user_id: response.data.user_id, username: response.data.username });
+          router.push("/");
         }
+        
+
       } catch (err: unknown) {
         if (axios.isAxiosError(err)) {
           setError(err.response?.data?.error || "Đăng nhập thất bại");
@@ -52,9 +55,10 @@ export default function LoginForm() {
     };
 
     if (triggerLogin) {
-      login();
+      handleLogin();
     }
-  }, [triggerLogin]);
+  }, [triggerLogin, formData.username, formData.password, login, router]);
+
 
   return (
     <div className="flex h-screen w-screen items-center justify-center bg-cover bg-center bg-no-repeat"
@@ -92,13 +96,13 @@ export default function LoginForm() {
         {error && <p className="text-red-600 text-sm text-center font-semibold mb-4">{error}</p>}
 
         <button type="submit"
-          className="w-full bg-gray-600 text-white font-semibold py-3 rounded-lg hover:bg-gray-500">
+          className="w-full bg-gray-600 text-white font-semibold py-3 rounded-lg hover:bg-gray-500 cursor-pointer transition duration-200 ease-in-out">
           Đăng nhập
         </button>
 
         <p className="text-center text-sm mt-4 text-gray-500">
           Chưa có tài khoản?{" "}
-          <a href="/RegisterForm" className="font-bold hover:underline">Đăng ký</a>
+          <a href="/RegisterForm" className="font-bold hover:underline cursor-pointer transition duration-200 ease-in-out">Đăng ký</a>
         </p>
       </form>
     </div>

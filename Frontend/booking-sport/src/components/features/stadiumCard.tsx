@@ -25,7 +25,7 @@ export default function StadiumCard({ stadium }: StadiumCardProps) {
                 <Image
                     src="/images/stadium.jpg"
                     fill
-                    alt={stadium.name}
+                    alt={stadium.name || "stadium"}
                     className="object-cover"
                 />
             </div>

@@ -19,6 +19,10 @@ export default function HomePage() {
   const images = ["/images/Banner.png", "/images/banner2.jpg", "/images/banner3.png", "/images/banner4.jpg"];
 
   useEffect(() => {
+    if (sessionStorage.getItem("shouldReload") === "true") {
+      sessionStorage.removeItem("shouldReload");
+      window.location.reload();
+    }
     const handleResize = () => setIsMobile(window.innerWidth < 768);
     handleResize();
     window.addEventListener("resize", handleResize);

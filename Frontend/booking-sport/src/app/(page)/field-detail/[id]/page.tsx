@@ -221,7 +221,7 @@ const FieldDetail = () => {
     useEffect(() => {
         const fetchField = async () => {
             try {
-                const res = await axios.get(`http://localhost:5000/api/admin/fields/getById/${field_id}`);
+                const res = await axios.get(`https://booking-sport-lljl.onrender.com/api/admin/fields/getById/${field_id}`);
                 setFieldInfo(res.data);
             } catch (error) {
                 console.error("Lỗi khi fetch sân:", error);

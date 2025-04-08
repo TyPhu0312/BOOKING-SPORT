@@ -150,10 +150,10 @@ export default function User() {
         console.log({ ...UserCreate, [id]: value, create_at: timestamp }); // Logs the expected updated state
     };
     useEffect(() => {
-        axios.get("http://localhost:5000/api/admin/user/get")
+        axios.get("https://booking-sport-lljl.onrender.com/api/admin/user/get")
             .then(users => setUsers(users.data))
             .catch(err => console.log(err))
-        axios.get("http://localhost:5000/api/admin/roles/get")
+        axios.get("https://booking-sport-lljl.onrender.com/api/admin/roles/get")
             .then(roles => setRoles(roles.data))
             .catch(err => console.log(err))
     }, []);
@@ -188,7 +188,7 @@ export default function User() {
             return;
         }
 
-        axios.put(`http://localhost:5000/api/admin/user/update/${user.user_id}`, newUser)
+        axios.put(`https://booking-sport-lljl.onrender.com/api/admin/user/update/${user.user_id}`, newUser)
             .then(() => {
                 toast({
                     title: "User Edited",
@@ -196,7 +196,7 @@ export default function User() {
                 });
 
                 // Cập nhật danh sách user sau khi chỉnh sửa thành công
-                return axios.get("http://localhost:5000/api/admin/user/get");
+                return axios.get("https://booking-sport-lljl.onrender.com/api/admin/user/get");
             })
             .then((response) => {
                 setUsers(response.data);
@@ -216,13 +216,13 @@ export default function User() {
     const handleConfirmDelete = () => {
 
         if (selectedUser) {
-            axios.delete(`http://localhost:5000/api/admin/user/delete/${selectedUser.user_id}`)
+            axios.delete(`https://booking-sport-lljl.onrender.com/api/admin/user/delete/${selectedUser.user_id}`)
                 .then(() => {
                     toast({
                         title: "User Deleted",
                         description: `User has been deleted.`,
                     });
-                    axios.get("http://localhost:5000/api/admin/user/get")
+                    axios.get("https://booking-sport-lljl.onrender.com/api/admin/user/get")
                         .then((response) => setUsers(response.data))
                         .catch((err) => console.error("Error fetching users:", err));
 
@@ -240,14 +240,14 @@ export default function User() {
     };
     const handleCreateUser = () => {
         console.log(UserCreate);
-        axios.post("http://localhost:5000/api/admin/user/create", UserCreate)
+        axios.post("https://booking-sport-lljl.onrender.com/api/admin/user/create", UserCreate)
             .then(() => {
                 toast({
                     title: "User Created",
                     description: "New User has been added successfully.",
                 });
                 // Load lại danh sách sản phẩm
-                axios.get("http://localhost:5000/api/admin/user/get")
+                axios.get("https://booking-sport-lljl.onrender.com/api/admin/user/get")
                     .then((response) => setUsers(response.data))
                     .catch((err) => console.error("Error fetching users:", err));
                 setUserCreate({

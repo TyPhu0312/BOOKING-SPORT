@@ -147,14 +147,14 @@ export default function StadiumCardList() {
 
 
     return (
-        <div className="relative w-full flex justify-center max-w-[1540px]">
+        <div className="relative w-full max-w-[1700px]">
             <div className="relative w-full">
                 <Carousel className="h-auto w-full overflow-hidden">
                     <CarouselContent className="flex">
                         {stadiums.map((stadium) => (
                             <CarouselItem
                                 key={stadium.id} 
-                                className="basis-full sm:basis-1/2 lg:basis-1/4 xl:basis-1/5 2xl:basis-1/6 flex justify-center"
+                                className="basis-full sm:basis-1/2 lg:basis-1/4 xl:basis-1/5 2xl:basis-1/6 3xl:basis-1/7 flex justify-center"
                             >
                                 <StadiumCard stadium={stadium} />
                             </CarouselItem>

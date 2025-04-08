@@ -29,7 +29,11 @@ const app: Application = express();
 const port: number = parseInt(process.env.PORT || '5000', 10);
 
 // Middleware
-app.use(cors());
+app.use(cors({
+  origin: 'http://localhost:3000',
+  credentials: true
+}));
+//Tuan sua? cai nay`
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(morgan('dev'));

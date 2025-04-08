@@ -28,7 +28,7 @@ enum RoleName {
 
 model User {
   user_id      String   @id @default(uuid()) @db.Char(36)
-  username     String   @db.VarChar(30)
+  username     String   @db.VarChar(30) 
   passWord     String
   email        String   @unique @db.VarChar(30)
   phone_number String   @db.VarChar(10)

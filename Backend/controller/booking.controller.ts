@@ -30,6 +30,9 @@ export const getBookingById = async (req: any, res: any) => {
     res.status(500).json({ error: error.message || 'Lỗi server' });
   }
 };
+function combineDateAndTime(date: string, time: string): Date {
+  return new Date(`${date}T${time}:00Z`);
+}
 
 // Tạo booking mới
 export const createBooking = async (req: any, res: any) => {
@@ -46,19 +49,27 @@ export const createBooking = async (req: any, res: any) => {
       FieldID,
     } = req.body;
 
-    if (!booking_date || !time_start || !time_end || !total_price || !deposit || !UserID || !FieldID) {
+    if (
+      !booking_date ||
+      !time_start ||
+      !time_end ||
+      !total_price ||
+      !deposit ||
+      !UserID ||
+      !FieldID
+    ) {
       return res.status(400).json({ error: 'Thiếu trường dữ liệu' });
     }
 
     const newBooking = await prisma.booking.create({
       data: {
-        booking_date: new Date(booking_date), // Ép kiểu Date ở đây
-        time_start,
-        time_end,
-        total_price,
-        deposit,
-        Status,
-        prove_payment,
+        booking_date: new Date(booking_date),
+        time_start: combineDateAndTime(booking_date,time_start),
+        time_end: combineDateAndTime(booking_date,time_end),
+        total_price: parseInt(total_price),
+        deposit: parseInt(deposit),
+        Status: Status || 'Pending',
+        prove_payment: prove_payment || '',
         UserID,
         FieldID,
       },

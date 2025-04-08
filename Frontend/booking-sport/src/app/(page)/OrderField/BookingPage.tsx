@@ -1,11 +1,11 @@
-// app/OrderField/BookingPage.tsx
-'use client';
+// BookingPage.jsx
 
+"use client";
 import { useEffect, useState } from "react";
-import { useSearchParams, useRouter } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import axios from "axios";
-import Image from "next/image";
 import { Button } from "@/components/ui/button";
+import { useRouter } from "next/navigation";
 
 interface Space_Per_Hour {
     space_per_hour_id: string;
@@ -102,6 +102,28 @@ const BookingPage = () => {
     const field_id = searchParams.get("field_id");
     const [field, setField] = useState<FieldDetail | null>(null);
 
+
+    const [form, setForm] = useState({
+        booking_date: '', // dạng "YYYY-MM-DD"
+        time_start: '',   // dạng "HH:mm"
+        time_end: '',     // dạng "HH:mm"
+        total_price: '',  // string hoặc number
+        deposit: '',      // string hoặc number
+        Status: 'Pending',
+        prove_payment: '', // ví dụ: 'none' hoặc URL
+        UserID: '',       // ID người dùng
+        FieldID: '',      // ID sân
+    });
+    useEffect(() => {
+        const userId = localStorage.getItem("user_id");
+        if (userId) {
+            setForm((prev) => ({
+                ...prev,
+                UserID: userId,
+            }));
+        }
+    }, []);
+
     useEffect(() => {
         const fetchField = async () => {
             try {
@@ -111,47 +133,106 @@ const BookingPage = () => {
                 console.error("Lỗi khi fetch sân:", error);
             }
         };
+        if (field_id) {
+            setForm((prev) => ({
+                ...prev,
+                FieldID: field_id,
+            }));
+        }
 
         if (field_id) fetchField();
     }, [field_id]);
 
-    if (!field) {
-        return (
-            <div className="text-center mt-20 text-red-600">
-                Không tìm thấy thông tin sân.
-            </div>
-        );
-    }
+
 
     // Tạo danh sách thời gian cho dropdown (từ 06:00 AM đến 10:00 PM, cách nhau 30 phút)
     const generateTimeOptions = () => {
         const times = [];
         for (let hour = 6; hour <= 22; hour++) {
             for (let minute = 0; minute < 60; minute += 30) {
-                const period = hour < 12 ? 'AM' : 'PM';
-                const displayHour = hour > 12 ? hour - 12 : hour === 0 ? 12 : hour;
-                const time = `${displayHour}:${minute === 0 ? '00' : minute} ${period}`;
-                times.push(time);
+                const hourStr = hour.toString().padStart(2, '0');
+                const minuteStr = minute.toString().padStart(2, '0');
+                times.push(`${hourStr}:${minuteStr}`);
             }
         }
         return times;
     };
-
+    
     const handleSubmit = async () => {
+        if (!form.booking_date || !form.time_start || !form.time_end) {
+            alert("Vui lòng chọn ngày và giờ đặt sân.");
+            return;
+        }
         try {
-            await axios.post("/api/book");
+            const unitPrice = field?.Space_Per_Hour?.length
+                ? Math.min(...field.Space_Per_Hour.map((sph) => sph.price))
+                : 0;
+
+            const timeStart24h = form.time_start;
+            const timeEnd24h = form.time_end;
+
+            const parseTime = (time: string) => {
+                const [hour, minute] = time.split(":").map(Number);
+                return hour * 60 + minute;
+            };
+
+            const startMinutes = parseTime(timeStart24h);
+            const endMinutes = parseTime(timeEnd24h);
+            const durationHours = (endMinutes - startMinutes) / 60;
+
+            const total_price = Math.round(unitPrice * durationHours);
+            const deposit = Math.round(total_price * 0.3);
+
+            const response = await axios.post("https://booking-sport-lljl.onrender.com/api/admin/booking/create", {
+                booking_date: form.booking_date,
+                time_start: timeStart24h,
+                time_end: timeEnd24h,
+                total_price: total_price.toString(),
+                deposit: deposit.toString(),
+                Status: form.Status,
+                prove_payment: form.prove_payment,
+                UserID: form.UserID,
+                FieldID: form.FieldID,
+            });
+
             alert("Đặt sân thành công!");
-            router.push(`/page`);
-        } catch (err) {
-            console.error("Lỗi khi đặt sân", err);
+            router.push(`/`);
+        } catch (err: any) {
+            console.error("Lỗi khi đặt sân", err.response?.data || err.message);
             alert("Đặt sân thất bại");
-
-
         }
     };
+    useEffect(() => {
+        const unitPrice = field?.Space_Per_Hour?.length
+            ? Math.min(...field.Space_Per_Hour.map((sph) => sph.price))
+            : 0;
+
+        if (form.time_start && form.time_end) {
+            const start = form.time_start;
+            const end = form.time_end;
+
+            const [sh, sm] = start.split(":").map(Number);
+            const [eh, em] = end.split(":").map(Number);
+
+            const duration = (eh * 60 + em - (sh * 60 + sm)) / 60;
+
+            const total_price = Math.round(unitPrice * duration);
+            const deposit = Math.round(total_price * 0.3);
+
+            setForm(prev => ({
+                ...prev,
+                total_price: total_price.toString(),
+                deposit: deposit.toString()
+            }));
+        }
+    }, [form.time_start, form.time_end, field]);
+
+
+
+
 
     const timeOptions = generateTimeOptions();
-
+    if (!field) return <p className="text-center mt-20">Đang tải thông tin sân...</p>;
 
     return (
         <div className="w-[75%] mx-auto p-6 bg-gray-100 min-h-screen">
@@ -178,7 +259,7 @@ const BookingPage = () => {
                     <div>
                         <p className="flex items-center">
                             <span className="mr-2">💰</span> Giá thuê: {(field.Space_Per_Hour?.length
-                                ? Math.min(...field.Space_Per_Hour.map((sph: Space_Per_Hour) => sph.price))
+                                ? Math.min(...field.Space_Per_Hour.map((sph: any) => sph.price))
                                 : 0).toLocaleString("vi-VN", { style: "currency", currency: "VND" })}
                         </p>
                         <p className="flex items-center">
@@ -209,6 +290,18 @@ const BookingPage = () => {
                         </div>
                     </div>
                 </div>
+
+                {/* Dịch vụ hữu ích */}
+                {/* <div>
+          <h3 className="text-xl font-semibold text-gray-700 flex items-center mb-4">
+            <span className="mr-2">🎉</span> Dịch vụ hữu ích
+          </h3>
+          <ul className="text-gray-600 list-disc list-inside columns-2">
+            {field.amenities.map((amenity, index) => (
+              <li key={index}>{amenity}</li>
+            ))}
+          </ul>
+        </div> */}
             </div>
 
             {/* Form đặt sân */}
@@ -222,6 +315,8 @@ const BookingPage = () => {
                         <input
                             type="date"
                             className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            value={form.booking_date}
+                            onChange={(e) => setForm({ ...form, booking_date: e.target.value })}
                         />
                     </div>
 
@@ -233,7 +328,10 @@ const BookingPage = () => {
                         <div className="flex items-center space-x-4">
                             <select
                                 className="w-1/2 p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                value={form.time_start}
+                                onChange={(e) => setForm({ ...form, time_start: e.target.value })}
                             >
+                                <option value="">Chọn giờ</option>
                                 {timeOptions.map((time, index) => (
                                     <option key={index} value={time}>
                                         {time}
@@ -243,7 +341,10 @@ const BookingPage = () => {
                             <span className="text-gray-600">→</span>
                             <select
                                 className="w-1/2 p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                value={form.time_end}
+                                onChange={(e) => setForm({ ...form, time_end: e.target.value })}
                             >
+                                <option value="">Chọn giờ</option>
                                 {timeOptions.map((time, index) => (
                                     <option key={index} value={time}>
                                         {time}
@@ -260,6 +361,14 @@ const BookingPage = () => {
                 >
                     Xác nhận đặt sân
                 </Button>
+                {/* Hiển thị giá và tiền cọc */}
+                {form.total_price && (
+                    <div className="mt-4 text-center text-gray-700">
+                        <p><strong>Tổng giá:</strong> {parseInt(form.total_price).toLocaleString('vi-VN', { style: 'currency', currency: 'VND' })}</p>
+                        <p><strong>Tiền cọc (30%):</strong> {parseInt(form.deposit).toLocaleString('vi-VN', { style: 'currency', currency: 'VND' })}</p>
+                    </div>
+                )}
+
             </form>
 
             {/* Thông tin thanh toán */}
@@ -274,12 +383,10 @@ const BookingPage = () => {
                     <p><strong>Số tài khoản:</strong> 1234-5678-9012 (Ngân hàng ABC)</p>
                     <p><strong>Chủ tài khoản:</strong> Công ty Thể Thao XYZ</p>
                 </div>
-                <Image
+                <img
                     src="/images/qrcode.jpg"
                     alt="QR Code Thanh Toán"
                     className="mx-auto mt-4 max-w-[200px]"
-                    width={200}
-                    height={200}
                 />
             </div>
         </div>

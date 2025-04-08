@@ -147,14 +147,14 @@ export default function RegisterForm() {
           {/* Nút đăng ký */}
           <button
             type="submit"
-            className="w-full bg-gray-600 text-white font-semibold py-3 rounded-lg hover:bg-gray-500"
+            className="w-full bg-gray-600 text-white font-semibold py-3 rounded-lg hover:bg-gray-500 cursor-pointer transition duration-200 ease-in-out"
           >
             Đăng ký
           </button>
 
           <p className="text-center text-sm mt-4 text-gray-700">
             Đã có tài khoản?{" "}
-            <a href="/LoginForm" className="font-bold hover:underline">
+            <a href="/LoginForm" className="font-bold hover:underline cursor-pointer transition duration-200 ease-in-out">
               Đăng nhập ngay
             </a>
           </p>

@@ -15,7 +15,7 @@ interface Space_Per_Hour {
     to_hour_value: string;
     price: number;
     FieldID: string;
-  }
+}
 
 export interface FieldDetail {
     field_id: string;
@@ -30,73 +30,73 @@ export interface FieldDetail {
     CategoryID: string;
     OptionID: string;
     user: {
-      user_id: string;
-      username: string;
-      passWord: string;
-      email: string;
-      phone_number: string;
-      create_at: string;
-      roleID: string;
+        user_id: string;
+        username: string;
+        passWord: string;
+        email: string;
+        phone_number: string;
+        create_at: string;
+        roleID: string;
     };
     category: {
-      category_id: string;
-      category_name: string;
+        category_id: string;
+        category_name: string;
     };
     option: {
-      option_field_id: string;
-      number_of_field: string;
-      CategoryID: string;
+        option_field_id: string;
+        number_of_field: string;
+        CategoryID: string;
     };
     Reviews: {
-      review_id: string;
-      rating: number;
-      comment: string;
-      create_at: string;
-      UserID: string;
-      FieldID: string;
+        review_id: string;
+        rating: number;
+        comment: string;
+        create_at: string;
+        UserID: string;
+        FieldID: string;
     }[];
     Booking: {
-      booking_id: string;
-      booking_date: string;
-      time_start: string;
-      time_end: string;
-      total_price: string;
-      deposit: string;
-      Status: string;
-      prove_payment: string;
-      UserID: string;
-      FieldID: string;
+        booking_id: string;
+        booking_date: string;
+        time_start: string;
+        time_end: string;
+        total_price: string;
+        deposit: string;
+        Status: string;
+        prove_payment: string;
+        UserID: string;
+        FieldID: string;
     }[];
     Space_Per_Hour: {
-      space_per_hour_id: string;
-      from_hour_value: string;
-      to_hour_value: string;
-      price: number;
-      FieldID: string;
+        space_per_hour_id: string;
+        from_hour_value: string;
+        to_hour_value: string;
+        price: number;
+        FieldID: string;
     }[];
     Hours: {
-      hours_id: string;
-      hour_value: number;
-      status_hour_on: string;
-      status_hour_off: string;
-      FieldID: string;
+        hours_id: string;
+        hour_value: number;
+        status_hour_on: string;
+        status_hour_off: string;
+        FieldID: string;
     }[];
     Fields_Schedule: {
-      schedule_id: string;
-      day_of_week: string;
-      open_time: string;
-      close_time: string;
-      FieldID: string;
+        schedule_id: string;
+        day_of_week: string;
+        open_time: string;
+        close_time: string;
+        FieldID: string;
     };
     Promotions: {
-      promotion_id: string;
-      discount: string;
-      start_date: string;
-      end_date: string;
-      FieldID: string;
+        promotion_id: string;
+        discount: string;
+        start_date: string;
+        end_date: string;
+        FieldID: string;
     }[];
-  }
-  
+}
+
 
 export default function StadiumCardList() {
     const [stadiums, setStadiums] = useState<Stadium[]>([]); // Tạo kiểu dữ liệu cho stadiums
@@ -151,14 +151,15 @@ export default function StadiumCardList() {
             <div className="relative w-full">
                 <Carousel className="h-auto w-full overflow-hidden">
                     <CarouselContent className="flex">
-                        {stadiums.map((stadium) => (
+                        {stadiums.map((stadium, index) => (
                             <CarouselItem
-                                key={stadium.id} 
+                                key={`${stadium.id}-${index}`} // Thêm index để đảm bảo uniqueness
                                 className="basis-full sm:basis-1/2 lg:basis-1/4 xl:basis-1/5 2xl:basis-1/6 3xl:basis-1/7 flex justify-center"
                             >
                                 <StadiumCard stadium={stadium} />
                             </CarouselItem>
                         ))}
+
                     </CarouselContent>
                     <CarouselPrevious className="absolute cursor-pointer left-4 md:left-6 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-gray-200 text-black hover:bg-gray-400 hover:scale-110 transition-all duration-200 z-10" />
                     <CarouselNext className="absolute  cursor-pointer right-4 md:right-6 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-gray-200 text-black hover:bg-gray-400 hover:scale-110 transition-all duration-200 z-10" />

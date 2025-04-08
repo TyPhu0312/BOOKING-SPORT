@@ -20,7 +20,7 @@ export default function StadiumCard({ stadium }: StadiumCardProps) {
         router.push(`/field-detail/${stadium.id}`);
     };
     return (
-        <div className="bg-white hover:shadow-lg transition-shadow duration-300  w-[270px] h-auto border">
+        <div className="bg-white hover:shadow-lg transition-shadow duration-300  w-[270px] h-auto border rounded-lg">
             <div className="w-full h-[160px] relative overflow-hidden">
                 <Image
                     src="/images/stadium.jpg"

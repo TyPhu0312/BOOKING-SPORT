@@ -8,9 +8,9 @@ interface TitleListCardProps {
 
 const TitleListCard: React.FC<TitleListCardProps> = ({ title, children, link }) => {
   return (
-    <div className="w-full h-auto m-[20px] flex flex-col gap-6">
+    <div className="w-full h-auto m-[15px] flex flex-col gap-6">
       <div className="flex justify-between items-center w-full px-4">
-        <h1 className="text-2xl font-bold text-left md:text-start text-gray-800 md:pl-[100px]">
+        <h1 className="text-2xl font-bold  text-start md:text-start text-gray-800 md:pl-[90px]">
           {title}
         </h1>
         {link && (
@@ -19,7 +19,7 @@ const TitleListCard: React.FC<TitleListCardProps> = ({ title, children, link }) 
           </a>
         )}
       </div>
-      <div className="w-full">{children}</div>
+      <div className="w-full justify-center flex">{children}</div>
     </div>
   );
 };

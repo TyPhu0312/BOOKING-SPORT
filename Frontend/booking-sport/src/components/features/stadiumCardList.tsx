@@ -147,24 +147,21 @@ export default function StadiumCardList() {
 
 
     return (
-        <div className="relative w-full flex justify-center px-10">
-            <div className="relative w-full max-w-[1300px]">
+        <div className="relative w-full flex justify-center max-w-[1540px]">
+            <div className="relative w-full">
                 <Carousel className="h-auto w-full overflow-hidden">
                     <CarouselContent className="flex">
                         {stadiums.map((stadium) => (
                             <CarouselItem
-                                key={stadium.id} // Dùng id để làm key
-                                className="basis-full sm:basis-1/3 lg:basis-1/4 xl:basis-1/5 flex justify-center"
+                                key={stadium.id} 
+                                className="basis-full sm:basis-1/2 lg:basis-1/4 xl:basis-1/5 2xl:basis-1/6 flex justify-center"
                             >
-                                {/* Truyền dữ liệu vào StadiumCard */}
                                 <StadiumCard stadium={stadium} />
                             </CarouselItem>
                         ))}
                     </CarouselContent>
-
-                    {/* Thêm padding-x vào nút để đẩy nội dung */}
-                    <CarouselPrevious className="absolute left-4 md:left-6 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-gray-200 text-black hover:bg-gray-400 hover:scale-110 transition-all duration-200 z-10" />
-                    <CarouselNext className="absolute right-4 md:right-6 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-gray-200 text-black hover:bg-gray-400 hover:scale-110 transition-all duration-200 z-10" />
+                    <CarouselPrevious className="absolute cursor-pointer left-4 md:left-6 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-gray-200 text-black hover:bg-gray-400 hover:scale-110 transition-all duration-200 z-10" />
+                    <CarouselNext className="absolute  cursor-pointer right-4 md:right-6 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-gray-200 text-black hover:bg-gray-400 hover:scale-110 transition-all duration-200 z-10" />
                 </Carousel>
             </div>
         </div>

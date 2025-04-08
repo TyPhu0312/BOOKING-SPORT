@@ -16,7 +16,7 @@ import routerFieldsSchedules from './router/fields_schedules.router';
 import routerFields from './router/fields.router';
 import routerHours from './router/hours.router';
 import routerOptionFields from './router/option_fields.router';
-import routerPaymentsBooking from './router/payments_booking.router';
+
 import routerPayments from './router/payments.router';
 import routerPromotions from './router/promotions.router';
 import routerReviews from './router/reviews.router';
@@ -30,7 +30,11 @@ const app: Application = express();
 const port: number = parseInt(process.env.PORT || '5000', 10);
 
 // Middleware
-app.use(cors());
+app.use(cors({
+  origin: 'http://localhost:3000',
+  credentials: true
+}));
+//Tuan sua? cai nay`
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(morgan('dev'));
@@ -44,7 +48,7 @@ app.use('/api/admin/fieldschedules', routerFieldsSchedules);
 app.use('/api/admin/fields', routerFields);
 app.use('/api/admin/hours', routerHours);
 app.use('/api/admin/optionfields', routerOptionFields);
-app.use('/api/admin/paymentsbooking', routerPaymentsBooking);
+
 app.use('/api/admin/payments', routerPayments);
 app.use('/api/admin/promotions', routerPromotions);
 app.use('/api/admin/reviews', routerReviews);

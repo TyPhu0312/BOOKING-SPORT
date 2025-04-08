@@ -1,25 +1,67 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
+import axios from "axios";
 import { FaUser, FaLock } from "react-icons/fa";
 
 export default function LoginForm() {
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
+  const router = useRouter();
+
+  const [formData, setFormData] = useState({
+    username: "",
+    password: "",
+  });
+
+  const [error, setError] = useState("");
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setError("");
+
+    try {
+      const response = await axios.post("http://localhost:5000/api/admin/user/login", {
+        username: formData.username,
+        passWord: formData.password, 
+      });
+
+      if (response.status === 200) {
+        alert("Đăng nhập thành công!");
+        router.push('/'); 
+      }
+    } catch (err: unknown) {
+      if (axios.isAxiosError(err)) {
+        setError(err.response?.data?.error || "Đăng nhập thất bại");
+      } else {
+        setError("Đã xảy ra lỗi không xác định");
+      }
+    }
+  };
 
   return (
-    <div className="flex h-screen w-screen items-center justify-center bg-cover bg-center bg-no-repeat"
-         style={{ backgroundImage: "url('/images/background/bg2.jpg')" }}> 
-<div className="bg-gradient-to-b from-[#f7f6f6] via-[#95f4f4] to-[#50f8f0] p-10 rounded-2xl shadow-xl text-white w-96">
-
+    <div
+      className="flex h-screen w-screen items-center justify-center bg-cover bg-center bg-no-repeat"
+      style={{ backgroundImage: "url('/images/background/bg2.jpg')" }}
+    >
+      <form
+        onSubmit={handleSubmit}
+        className="bg-gradient-to-b from-[#f7f6f6] via-[#95f4f4] to-[#50f8f0] p-10 rounded-2xl shadow-xl text-white w-96"
+      >
         <h2 className="text-3xl font-bold text-black text-center mb-6">Đăng nhập</h2>
-        
+
         <div className="relative mb-4">
           <input
             type="text"
+            name="username"
             placeholder="Tên đăng nhập"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
+            value={formData.username}
+            onChange={handleChange}
+            required
             className="w-full p-3 pl-10 rounded-lg bg-white text-black focus:outline-none"
           />
           <FaUser className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500" />
@@ -28,31 +70,34 @@ export default function LoginForm() {
         <div className="relative mb-4">
           <input
             type="password"
+            name="password"
             placeholder="Mật khẩu"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            value={formData.password}
+            onChange={handleChange}
+            required
             className="w-full p-3 pl-10 rounded-lg bg-white text-black focus:outline-none"
           />
           <FaLock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500" />
         </div>
 
-        <div className="flex justify-between items-center text-sm mb-4">
-          <label className="flex items-center text-gray-500">
-            <input type="checkbox" className="mr-2" /> Lưu mật khẩu
-          </label>
-          <a href="/ForgotPasswordForm" className="text-gray-500 hover:underline">Quên mật khẫu</a>
-        </div>
+        {error && (
+          <p className="text-red-600 text-sm text-center font-semibold mb-4">{error}</p>
+        )}
 
-        <button 
-        className="w-full bg-gray-600 text-white font-semibold py-3 rounded-lg hover:bg-gray-500"
+        <button
+          type="submit"
+          className="w-full bg-gray-600 text-white font-semibold py-3 rounded-lg hover:bg-gray-500"
         >
           Đăng nhập
         </button>
 
         <p className="text-center text-sm mt-4 text-gray-500">
-          Chưa có tài khoản? <a href="/RegisterForm" className="font-bold hover:underline">Đăng kí</a>
+          Chưa có tài khoản?{" "}
+          <a href="/RegisterForm" className="font-bold hover:underline">
+            Đăng ký
+          </a>
         </p>
-      </div>
+      </form>
     </div>
   );
 }

@@ -7,8 +7,8 @@ const prisma = new PrismaClient();
 // Tạo người dùng mới
 export const createUser = async (req: any, res: any) => {
     try {
-        const { username, passWord, email, phone_number, roleID,create_at } = req.body;
-        if (!username || !passWord || !email || !phone_number || !roleID|| !create_at) {
+        const { username, passWord, email, phone_number, roleID, create_at } = req.body;
+        if (!username || !passWord || !email || !phone_number || !roleID || !create_at) {
             return res.status(400).json({ error: 'Thiếu trường dữ liệu' });
         }
         if (!validator.isEmail(email)) {
@@ -18,13 +18,14 @@ export const createUser = async (req: any, res: any) => {
         const newUser = await prisma.user.create({
             data: {
                 username,
-                passWord: hashedPassword,
+                passWord,
                 email,
                 phone_number,
-                roleID,
-                create_at
-            }
+                roleID: String(roleID), // CHỈNH CHỖ NÀY
+                create_at: new Date(),
+            },
         });
+
         return res.status(201).json(newUser);
     } catch (error: any) {
         console.error(error);
@@ -137,5 +138,33 @@ export const deleteUser = async (req: any, res: any) => {
         }
         console.error(error);
         return res.status(500).json({ error: error.message });
+    }
+};
+export const loginUser = async (req: any, res: any) => {
+    try {
+        const { username, passWord } = req.body;
+        console.log("Dữ liệu đăng nhập nhận được:", req.body);
+
+        if (!username || !passWord) {
+            return res.status(400).json({ error: "Thiếu tên đăng nhập hoặc mật khẩu" });
+        }
+
+        const user = await prisma.user.findFirst({
+            where: { username }
+        });
+
+        if (!user) {
+            return res.status(404).json({ error: "Tài khoản không tồn tại" });
+        }
+
+        // So sánh trực tiếp password không mã hóa
+        if (user.passWord !== passWord) {
+            return res.status(401).json({ error: "Mật khẩu không đúng" });
+        }
+
+        return res.status(200).json({ message: "Đăng nhập thành công", user });
+    } catch (error: any) {
+        console.error("Lỗi trong loginUser:", error);
+        return res.status(500).json({ error: "Lỗi máy chủ" });
     }
 };

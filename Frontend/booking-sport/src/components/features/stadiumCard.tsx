@@ -1,10 +1,8 @@
-"use client"
-
+"use client";
 
 import Image from "next/image";
-import { Button } from "@/components/ui/button"
+import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
-
 // Định nghĩa kiểu dữ liệu cho stadium
 interface Stadium {
     id: number;
@@ -12,32 +10,34 @@ interface Stadium {
     location: string;
     price: string;
 }
-
 interface StadiumCardProps {
     stadium: Stadium;
 }
-
 export default function StadiumCard({ stadium }: StadiumCardProps) {
     const router = useRouter();
+
     const handleBooking = () => {
-        router.push(`/OrderField?field_id=${stadium.id}`);
-      };
+        router.push(`/field-detail/${stadium.id}`);
+    };
     return (
-        <div className="bg-white shadow-md pb-2 rounded-lg w-[270px] h-auto">
-            <Image
-                src="/images/stadium.jpg"
-                width={300}
-                height={300}
-                alt={stadium.name}
-                className="object-cover rounded-t-lg"
-            />
-            <div className="p-4 ">
-                <h3 className="mt-1 text-lg font-semibold">{stadium.name}</h3>
-                <p className="text-gray-600 text-sm pb-3">{stadium.location}</p>
+        <div className="bg-white hover:shadow-lg transition-shadow duration-300  w-[270px] h-auto border">
+            <div className="w-full h-[160px] relative overflow-hidden">
+                <Image
+                    src="/images/stadium.jpg"
+                    fill
+                    alt={stadium.name}
+                    className="object-cover"
+                />
+            </div>
+            <div className="p-4 space-y-1">
+                <h3 className="text-lg font-semibold truncate">{stadium.name}</h3>
+                <p className="text-gray-600 text-sm">{stadium.location}</p>
                 <p className="text-green-600 font-bold">{stadium.price}</p>
             </div>
-            <div className="m-auto cursor-pointer flex justify-center items-center">
-                <Button onClick={handleBooking} variant="outline" className="cursor-pointer">Đặt ngay</Button>
+            <div className="px-4 pb-4 flex justify-center">
+                <Button onClick={handleBooking} variant="outline" className=" cursor-pointer">
+                    Đặt ngay
+                </Button>
             </div>
         </div>
     );

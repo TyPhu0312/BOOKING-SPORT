@@ -6,6 +6,7 @@ import { useSearchParams } from "next/navigation";
 import axios from "axios";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 
 interface Space_Per_Hour {
     space_per_hour_id: string;
@@ -157,7 +158,7 @@ const BookingPage = () => {
         }
         return times;
     };
-    
+
     const handleSubmit = async () => {
         if (!form.booking_date || !form.time_start || !form.time_end) {
             alert("Vui lòng chọn ngày và giờ đặt sân.");
@@ -183,7 +184,7 @@ const BookingPage = () => {
             const total_price = Math.round(unitPrice * durationHours);
             const deposit = Math.round(total_price * 0.3);
 
-            const response = await axios.post("https://booking-sport-lljl.onrender.com/api/admin/booking/create", {
+            await axios.post("https://booking-sport-lljl.onrender.com/api/admin/booking/create", {
                 booking_date: form.booking_date,
                 time_start: timeStart24h,
                 time_end: timeEnd24h,
@@ -197,8 +198,8 @@ const BookingPage = () => {
 
             alert("Đặt sân thành công!");
             router.push(`/`);
-        } catch (err: any) {
-            console.error("Lỗi khi đặt sân", err.response?.data || err.message);
+        } catch (err) {
+            console.error("Lỗi khi đặt sân", err);
             alert("Đặt sân thất bại");
         }
     };
@@ -259,7 +260,7 @@ const BookingPage = () => {
                     <div>
                         <p className="flex items-center">
                             <span className="mr-2">💰</span> Giá thuê: {(field.Space_Per_Hour?.length
-                                ? Math.min(...field.Space_Per_Hour.map((sph: any) => sph.price))
+                                ? Math.min(...field.Space_Per_Hour.map((sph: Space_Per_Hour) => sph.price))
                                 : 0).toLocaleString("vi-VN", { style: "currency", currency: "VND" })}
                         </p>
                         <p className="flex items-center">
@@ -383,10 +384,12 @@ const BookingPage = () => {
                     <p><strong>Số tài khoản:</strong> 1234-5678-9012 (Ngân hàng ABC)</p>
                     <p><strong>Chủ tài khoản:</strong> Công ty Thể Thao XYZ</p>
                 </div>
-                <img
+                <Image
                     src="/images/qrcode.jpg"
                     alt="QR Code Thanh Toán"
                     className="mx-auto mt-4 max-w-[200px]"
+                    width={200}
+                    height={200}
                 />
             </div>
         </div>

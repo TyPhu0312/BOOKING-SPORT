@@ -121,7 +121,7 @@ export default function StadiumCardList() {
         const fetchStadiums = async () => {
             try {
                 const res = await axios.get("https://booking-sport-lljl.onrender.com/api/admin/fields/get");
-
+                
                 // Chuyển đổi dữ liệu
                 const transformedData = res.data.map((field: FieldDetail) => {
                     const minPrice = field.Space_Per_Hour?.length

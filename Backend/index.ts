@@ -30,7 +30,8 @@ const port: number = parseInt(process.env.PORT || '5000', 10);
 
 // Middleware
 app.use(cors({
-  origin: 'http://localhost:3000',
+  origin: 'https://booking-sport-frontend.vercel.app',
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
   credentials: true
 }));
 //Tuan sua? cai nay`

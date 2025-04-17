@@ -7,7 +7,6 @@ import Link from "next/link";
 
 const ManageFields = () => {
   const router = useRouter();
-
   return (
     <div className="p-6 max-w-7xl mx-auto">
       <h1 className="text-4xl font-extrabold text-center text-gray-800 mb-10">Quản lý sân thể thao</h1>

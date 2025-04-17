@@ -51,7 +51,7 @@ const Navbar = () => {
             <Link href="/all-fields" className="hover:text-black hover:font-bold transition">
               Tất cả sân
             </Link>
-            <Link href="/owner-fields/owner-manage" className="hover:text-black hover:font-bold transition">
+            <Link href="owner-fields/register-fields" className="hover:text-black hover:font-bold transition">
               Trở thành chủ sân
             </Link>
             <Link href="/about" className="hover:text-black hover:font-bold transition">
@@ -124,7 +124,7 @@ const Navbar = () => {
           <Link href="/all-fields" className="block text-gray-800 hover:text-black transition">
             Tất cả sân
           </Link>
-          <Link href="/owner-fields/owner-manage" className="block text-gray-800 hover:text-black transition">
+          <Link href="/register-fields" className="block text-gray-800 hover:text-black transition">
             Trở thành chủ sân
           </Link>
           <Link href="/about" className="block text-gray-800 hover:text-black transition">

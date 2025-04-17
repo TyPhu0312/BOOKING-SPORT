@@ -15,10 +15,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <AuthProvider> {/* 👈 Bọc toàn bộ app */}
+    <AuthProvider> 
       <div className="bg-gray-100 text-gray-800 font-sans overflow-x-hidden flex flex-col min-h-screen">
         <Navbar />
-        <main className="flex-grow container-fluid mx-auto w-full">
+        <main className="flex-grow container-fluid mx-auto w-full pt-15">
           {children}
         </main>
         <Footer />

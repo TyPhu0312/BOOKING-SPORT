@@ -1,6 +1,5 @@
 @import "tailwindcss";
 
-
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
@@ -111,7 +110,12 @@
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.556 0 0);
 }
-
+.custom-form input,
+.custom-form textarea,
+.custom-form select,
+.custom-form .shadcn-select-trigger {
+  @apply border border-gray-800;
+}
 @layer base {
   * {
     @apply border-border outline-ring/50;

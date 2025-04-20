@@ -28,7 +28,6 @@ const app: Application = express();
 const port: number = parseInt(process.env.PORT || "5000", 10);
 const allowedOrigins = [
   "http://localhost:3000",
-  "https://booking-sport-frontend.vercel.app",
 ];
 // Middleware
 app.use(

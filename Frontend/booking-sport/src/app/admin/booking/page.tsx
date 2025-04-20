@@ -111,7 +111,7 @@ export default function Booking() {
     const [showAlert, setShowAlert] = useState(false);
 
     useEffect(() => {
-        axios.get("https://booking-sport-lljl.onrender.com/api/admin/Booking/get")
+        axios.get("http://localhost:5000/api/admin/Booking/get")
             .then(bookings => setBookings(bookings.data))
             .catch(err => console.log(err))
     }, []);
@@ -129,14 +129,14 @@ export default function Booking() {
     const handleConfirmDelete = () => {
         // Make sure Fields.id is passed dynamically in the URL
         if (selectedBookings) {
-            axios.delete(`https://booking-sport-lljl.onrender.com/api/admin/Booking/delete/${selectedBookings.booking_id}`)
+            axios.delete(`http://localhost:5000/api/admin/Booking/delete/${selectedBookings.booking_id}`)
                 .then(() => {
                     toast({
                         title: "Booking Deleted",
                         description: `Booking has been deleted.`,
                     });
                     // Reload the Booking or update state after deletion
-                    axios.get("https://booking-sport-lljl.onrender.com/api/admin/Booking/get")
+                    axios.get("http://localhost:5000/api/admin/Booking/get")
                         .then((response) => setBookings(response.data))
                         .catch((err) => console.error("Error fetching Booking:", err));
 

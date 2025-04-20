@@ -17,7 +17,7 @@ export function useAuth() {
       const id = localStorage.getItem("user_id");
       if (id) {
         try {
-          const res = await axios.get(`https://booking-sport-lljl.onrender.com/api/admin/user/getByID/${id}`);
+          const res = await axios.get(`http://localhost:5000/api/admin/user/getByID/${id}`);
           setUser(res.data); // 👈 đây là thông tin user từ backend
           setIsLoggedIn(true);
         } catch (err) {

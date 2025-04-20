@@ -104,7 +104,7 @@ export default function StadiumCardList() {
     useEffect(() => {
         const fetchStadiums = async () => {
             try {
-                const res = await axios.get("https://booking-sport-lljl.onrender.com/api/admin/fields/get");
+                const res = await axios.get("http://localhost:5000/api/admin/fields/get");
                 setStadiums(res.data);  // Gán dữ liệu vào state
             } catch (err) {
                 console.error("Lỗi khi fetch sân:", err);
@@ -120,8 +120,8 @@ export default function StadiumCardList() {
     }, [stadiums]); useEffect(() => {
         const fetchStadiums = async () => {
             try {
-                const res = await axios.get("https://booking-sport-lljl.onrender.com/api/admin/fields/get");
-                
+                const res = await axios.get("http://localhost:5000/api/admin/fields/get");
+
                 // Chuyển đổi dữ liệu
                 const transformedData = res.data.map((field: FieldDetail) => {
                     const minPrice = field.Space_Per_Hour?.length

@@ -33,6 +33,31 @@ export const getBookingById = async (req: any, res: any) => {
 function combineDateAndTime(date: string, time: string): Date {
   return new Date(`${date}T${time}:00Z`);
 }
+// Lấy booking theo UserID
+export const getBookingsByUserId = async (req: any, res: any) => {
+  try {
+    const { userId } = req.params;
+    const bookings = await prisma.booking.findMany({
+      where: { UserID: userId },
+      include: {
+        fields: {
+          select: {
+            field_name: true,
+            location: true,
+          },
+        },
+      },
+      orderBy: { booking_date: 'desc' }, // Sắp xếp theo ngày đặt mới nhất
+    });
+    if (!bookings.length) {
+      return res.status(404).json({ error: 'Không tìm thấy booking nào cho người dùng này' });
+    }
+    res.status(200).json(bookings);
+  } catch (error: any) {
+    console.error(error);
+    res.status(500).json({ error: error.message || 'Lỗi server' });
+  }
+};
 
 // Tạo booking mới
 export const createBooking = async (req: any, res: any) => {

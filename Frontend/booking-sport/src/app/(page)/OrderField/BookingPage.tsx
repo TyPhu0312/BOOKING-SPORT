@@ -128,7 +128,7 @@ const BookingPage = () => {
     useEffect(() => {
         const fetchField = async () => {
             try {
-                const res = await axios.get(`https://booking-sport-lljl.onrender.com/api/admin/fields/getById/${field_id}`);
+                const res = await axios.get(`http://localhost:5000/api/admin/fields/getById/${field_id}`);
                 setField(res.data);
             } catch (error) {
                 console.error("Lỗi khi fetch sân:", error);
@@ -184,7 +184,7 @@ const BookingPage = () => {
             const total_price = Math.round(unitPrice * durationHours);
             const deposit = Math.round(total_price * 0.3);
 
-            await axios.post("https://booking-sport-lljl.onrender.com/api/admin/booking/create", {
+            await axios.post("http://localhost:5000/api/admin/booking/create", {
                 booking_date: form.booking_date,
                 time_start: timeStart24h,
                 time_end: timeEnd24h,
@@ -197,7 +197,7 @@ const BookingPage = () => {
             });
 
             alert("Đặt sân thành công!");
-            router.push(`/`);
+            router.push("/user/bookings");
         } catch (err) {
             console.error("Lỗi khi đặt sân", err);
             alert("Đặt sân thất bại");

@@ -72,7 +72,7 @@ interface Field {
     option: Option;
 }
 
-interface Option{
+interface Option {
     option_field_id: string;
     number_of_field: string;
     category: Category;
@@ -146,10 +146,10 @@ export default function Field() {
     //     console.log({ ...newField, [id]: value, createAt: timestamp }); // Logs the expected updated state
     // };
     useEffect(() => {
-        axios.get("https://booking-sport-lljl.onrender.com/api/admin/Fields/get")
+        axios.get("http://localhost:5000/api/admin/Fields/get")
             .then(Fields => setFields(Fields.data))
             .catch(err => console.log(err))
-        axios.get("https://booking-sport-lljl.onrender.com/api/admin/category/get")
+        axios.get("http://localhost:5000/api/admin/category/get")
             .then(category => setCategory(category.data))
             .catch(err => console.log(err))
     }, []);
@@ -173,14 +173,14 @@ export default function Field() {
     }
     // const handleConfirmEdit = () => {
     //     if (!Field) return;
-    //     axios.put(`https://booking-sport-lljl.onrender.com/api/admin/Fields/update/${Field.field_id}`, newField)
+    //     axios.put(`http://localhost:5000/api/admin/Fields/update/${Field.field_id}`, newField)
     //         .then(() => {
     //             toast({
     //                 title: "Fields Edit",
     //                 description: `Fields has been edit.`,
     //             });
     //             // Reload the Fields or update state after deletion
-    //             axios.get("https://booking-sport-lljl.onrender.com/api/admin/Fields/get")
+    //             axios.get("http://localhost:5000/api/admin/Fields/get")
     //                 .then((response) => setFields(response.data))
     //                 .catch((err) => console.error("Error fetching Fields:", err));
 
@@ -198,14 +198,14 @@ export default function Field() {
     const handleConfirmDelete = () => {
         // Make sure Fields.id is passed dynamically in the URL
         if (selectedFields) {
-            axios.delete(`https://booking-sport-lljl.onrender.com/api/admin/Fields/delete/${selectedFields.field_id}`)
+            axios.delete(`http://localhost:5000/api/admin/Fields/delete/${selectedFields.field_id}`)
                 .then(() => {
                     toast({
                         title: "Fields Deleted",
                         description: `Fields has been deleted.`,
                     });
                     // Reload the Fields or update state after deletion
-                    axios.get("https://booking-sport-lljl.onrender.com/api/admin/Fields/get")
+                    axios.get("http://localhost:5000/api/admin/Fields/get")
                         .then((response) => setFields(response.data))
                         .catch((err) => console.error("Error fetching Fields:", err));
 
@@ -223,14 +223,14 @@ export default function Field() {
     };
     // const handleCreateFields = () => {
     //     console.log(newField);
-    //     axios.post("https://booking-sport-lljl.onrender.com/api/admin/Fields/create", newField)
+    //     axios.post("http://localhost:5000/api/admin/Fields/create", newField)
     //         .then(() => {
     //             toast({
     //                 title: "Fields Created",
     //                 description: "New Fields has been added successfully.",
     //             });
     //             // Load lại danh sách sản phẩm
-    //             axios.get("https://booking-sport-lljl.onrender.com/api/admin/Fields/get")
+    //             axios.get("http://localhost:5000/api/admin/Fields/get")
     //                 .then((response) => setFields(response.data))
     //                 .catch((err) => console.error("Error fetching Fields:", err));
     //             setnewField({

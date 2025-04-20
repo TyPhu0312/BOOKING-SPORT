@@ -41,7 +41,7 @@ export default function RegisterForm() {
         create_at: new Date().toISOString(), // ISO format
       };
 
-      await axios.post("https://booking-sport-lljl.onrender.com/api/admin/user/create", payload);
+      await axios.post("http://localhost:5000/api/admin/user/create", payload);
       alert("Tạo tài khoản thành công!");
       router.push('../LoginForm'); // chuyển sang trang đăng nhập
     } catch (err: unknown) {

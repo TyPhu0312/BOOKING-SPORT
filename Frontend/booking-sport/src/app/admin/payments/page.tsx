@@ -120,7 +120,7 @@ export default function Payment() {
     const [showAlert, setShowAlert] = useState(false);
 
     useEffect(() => {
-        axios.get("https://booking-sport-lljl.onrender.com/api/admin/Payments/get")
+        axios.get("http://localhost:5000/api/admin/Payments/get")
             .then(payments => setPayments(payments.data))
             .catch(err => console.log(err))
     }, []);
@@ -136,14 +136,14 @@ export default function Payment() {
 
     const handleConfirmDelete = () => {
         if (selectedPayments) {
-            axios.delete(`https://booking-sport-lljl.onrender.com/api/admin/Payment/delete/${selectedPayments.payment_id}`)
+            axios.delete(`http://localhost:5000/api/admin/Payment/delete/${selectedPayments.payment_id}`)
                 .then(() => {
                     toast({
                         title: "Payment Deleted",
                         description: `Payment has been deleted.`,
                     });
                     // Reload the Payment or update state after deletion
-                    axios.get("https://booking-sport-lljl.onrender.com/api/admin/Payment/get")
+                    axios.get("http://localhost:5000/api/admin/Payment/get")
                         .then((response) => setPayments(response.data))
                         .catch((err) => console.error("Error fetching Payment:", err));
 

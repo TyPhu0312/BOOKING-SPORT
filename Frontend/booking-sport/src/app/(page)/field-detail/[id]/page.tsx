@@ -1,3 +1,4 @@
+
 "use client";
 import React, { useEffect, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
@@ -95,14 +96,7 @@ interface FieldDetail {
         open_time: string;
         close_time: string;
         FieldID: string;
-    };
-    Promotions: {
-        promotion_id: string;
-        discount: string;
-        start_date: string;
-        end_date: string;
-        FieldID: string;
-    }[];
+    } | null; // Cập nhật để cho phép null
 }
 
 interface TimeSlot {
@@ -152,10 +146,9 @@ const FieldDetail = () => {
         const fakeImages = ["/images/stadium.jpg", "/images/stadium.jpg", "/images/stadium.jpg", "/images/stadium.jpg", "/images/stadium.jpg"];
 
         const fetchField = async () => {
-            // Kiểm tra field_id trước khi gọi API
             if (!field_id || field_id === "undefined") {
                 setError("Không tìm thấy ID sân. Vui lòng thử lại.");
-                setImages(fakeImages); // Dùng fakeImages làm fallback
+                setImages(fakeImages);
                 return;
             }
 
@@ -165,12 +158,9 @@ const FieldDetail = () => {
 
                 // Chuẩn hóa image_url
                 let imageUrl = fieldData.image_url;
-                // Nếu image_url không bắt đầu bằng http:// hoặc https://, thêm tiền tố
                 if (imageUrl && !imageUrl.startsWith("http://") && !imageUrl.startsWith("https://")) {
-                    // Giả sử backend phục vụ hình ảnh từ http://localhost:5000/images/
                     imageUrl = `http://localhost:5000/images/${imageUrl}`;
                 } else if (!imageUrl) {
-                    // Nếu image_url không tồn tại, dùng hình ảnh mặc định
                     imageUrl = fakeImages[0];
                 }
 
@@ -196,6 +186,32 @@ const FieldDetail = () => {
                 const scheduleRes = await axios.get<FieldDetail>(`http://localhost:5000/api/admin/fields/getById/${field_id}`);
                 const fieldSchedule = scheduleRes.data.Fields_Schedule;
 
+                // Kiểm tra fieldSchedule có tồn tại và hợp lệ
+                if (!fieldSchedule || !fieldSchedule.open_time || !fieldSchedule.close_time) {
+                    setError("Không có thông tin lịch sân. Vui lòng liên hệ quản trị viên.");
+                    setSchedule([]);
+                    return;
+                }
+
+                // Xử lý open_time và close_time với định dạng linh hoạt
+                const parseTime = (time: string) => {
+                    // Nếu thời gian ở định dạng ISO (có "T")
+                    if (time.includes("T")) {
+                        return parseInt(time.split("T")[1].split(":")[0]);
+                    }
+                    // Nếu thời gian chỉ là "HH:mm"
+                    return parseInt(time.split(":")[0]);
+                };
+
+                const openHour = parseTime(fieldSchedule.open_time);
+                const closeHour = parseTime(fieldSchedule.close_time);
+
+                if (isNaN(openHour) || isNaN(closeHour)) {
+                    setError("Định dạng giờ mở/đóng không hợp lệ.");
+                    setSchedule([]);
+                    return;
+                }
+
                 const newSchedule: DaySlot[] = [];
                 const today = new Date();
                 for (let i = 0; i < 14; i++) {
@@ -203,10 +219,6 @@ const FieldDetail = () => {
                     date.setDate(today.getDate() + i);
                     const dayLabel = date.toLocaleDateString("en-US", { weekday: "long" });
                     const dateStr = date.toISOString().split("T")[0];
-
-                    // Lấy giờ mở/đóng từ fieldSchedule
-                    const openHour = parseInt(fieldSchedule.open_time.split("T")[1].split(":")[0]);
-                    const closeHour = parseInt(fieldSchedule.close_time.split("T")[1].split(":")[0]);
 
                     const slots = Array.from({ length: 24 }, (_, hour) => {
                         const hourStr = `${hour.toString().padStart(2, "0")}:00`;
@@ -233,6 +245,7 @@ const FieldDetail = () => {
             } catch (error) {
                 console.error("Lỗi khi lấy lịch:", error);
                 setError("Không thể tải lịch sân. Vui lòng thử lại.");
+                setSchedule([]);
             }
         };
 
@@ -289,7 +302,7 @@ const FieldDetail = () => {
                 (b) => b.FieldID === field_id && b.booking_date.split("T")[0] === form.date.toISOString().split("T")[0]
             );
 
-            const isTimeSlotAvailable = bookings.some((b) => {
+            const isTimeSlotBooked = bookings.some((b) => {
                 const bookingStart = parseTime(b.time_start.split("T")[1].substring(0, 5));
                 const bookingEnd = parseTime(b.time_end.split("T")[1].substring(0, 5));
                 return (
@@ -299,7 +312,7 @@ const FieldDetail = () => {
                 );
             });
 
-            if (isTimeSlotAvailable) {
+            if (isTimeSlotBooked) {
                 setError("Khung giờ đã chọn không khả dụng. Vui lòng chọn khung giờ khác.");
                 return;
             }
@@ -390,7 +403,11 @@ const FieldDetail = () => {
                     <div className="space-y-2 text-sm text-gray-700 mt-4">
                         <div className="flex justify-between">
                             <span className="font-bold text-[18px]">Giờ mở cửa:</span>
-                            <span className="text-gray-600 text-[18px]">{(fieldInfo.Fields_Schedule.open_time).substring(11, 16)}</span>
+                            <span className="text-gray-600 text-[18px]">
+                                {fieldInfo.Fields_Schedule?.open_time
+                                    ? fieldInfo.Fields_Schedule.open_time.substring(11, 16)
+                                    : "Chưa có thông tin"}
+                            </span>
                         </div>
                         <div className="flex justify-between">
                             <span className="font-bold text-[18px]">Số lượng sân:</span>
@@ -398,9 +415,11 @@ const FieldDetail = () => {
                         </div>
                         <div className="flex justify-between">
                             <span className="font-bold text-[18px]">Giá sân:</span>
-                            <span className="text-gray-600 text-[18px]">{(fieldInfo.Space_Per_Hour?.length
-                                ? Math.min(...fieldInfo.Space_Per_Hour.map((sph: Space_Per_Hour) => sph.price))
-                                : 0).toLocaleString("vi-VN", { style: "currency", currency: "VND" })}</span>
+                            <span className="text-gray-600 text-[18px]">
+                                {(fieldInfo.Space_Per_Hour?.length
+                                    ? Math.min(...fieldInfo.Space_Per_Hour.map((sph: Space_Per_Hour) => sph.price))
+                                    : 0).toLocaleString("vi-VN", { style: "currency", currency: "VND" })}
+                            </span>
                         </div>
                     </div>
                     <div className="mt-5">

@@ -34,15 +34,15 @@ export const getOptionFieldById = async (req: any, res: any) => {
 // Tạo mới Option Field
 export const createOptionField = async (req: any, res: any) => {
   try {
-    const { number_of_field, CategoryID } = req.body;
+    const { option_name, CategoryID } = req.body;
 
-    if (!number_of_field || !CategoryID) {
-      return res.status(400).json({ error: 'Thiếu số lượng sân hoặc CategoryID' });
+    if (!option_name || !CategoryID) {
+      return res.status(400).json({ error: 'Thiếu option field hoặc CategoryID' });
     }
 
     const newOptionField = await prisma.option_Fields.create({
       data: {
-        number_of_field,
+        option_name,
         CategoryID,
       },
     });
@@ -57,12 +57,12 @@ export const createOptionField = async (req: any, res: any) => {
 export const updateOptionField = async (req: any, res: any) => {
   try {
     const { id } = req.params;
-    const { number_of_field, CategoryID } = req.body;
+    const { option_name, CategoryID } = req.body;
 
     const updatedOptionField = await prisma.option_Fields.update({
       where: { option_field_id: id },
       data: {
-        number_of_field,
+        option_name,
         CategoryID,
       },
     });

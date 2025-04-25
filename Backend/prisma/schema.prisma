@@ -1,11 +1,6 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
+  output   = "../node_modules/.prisma/client"
 }
 
 datasource db {
@@ -22,15 +17,9 @@ model Role {
   @@map("role")
 }
 
-enum RoleName {
-  Admin
-  Customer
-  Owner
-}
-
 model User {
   user_id      String   @id @default(uuid()) @db.Char(36)
-  username     String   @db.VarChar(30) 
+  username     String   @db.VarChar(30)
   passWord     String
   email        String   @unique @db.VarChar(30)
   phone_number String   @db.VarChar(10)
@@ -40,8 +29,8 @@ model User {
 
   Bank_accounts Bank_account[]
   Bookings      Booking[]
-  Fields        Fields[]
-  Reviews       Reviews[]
+  Fields        Fields[]       @relation("UserFields")
+  Reviews       Reviews[]      @relation("UserReviews")
 
   @@map("user")
 }
@@ -64,19 +53,11 @@ model Payments {
   status       Payments_Status @default(Success)
   isDeposit    Boolean
   BookingID    String          @db.VarChar(36)
-  booking      Booking         @relation(fields: [BookingID], references: [booking_id], onDelete: Cascade, onUpdate: NoAction)
 
+  booking Booking @relation(fields: [BookingID], references: [booking_id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([BookingID], map: "payments_BookingID_fkey")
   @@map("payments")
-}
-
-enum Payments_Method {
-  Banking
-  Cash
-}
-
-enum Payments_Status {
-  Success
-  Failed
 }
 
 model Booking {
@@ -89,94 +70,107 @@ model Booking {
   Status        Booking_Status @default(Pending)
   prove_payment String         @db.VarChar(30)
   UserID        String         @db.VarChar(36)
-  user          User           @relation(fields: [UserID], references: [user_id], onDelete: Cascade, onUpdate: NoAction)
   FieldID       String         @db.VarChar(36)
-  fields        Fields         @relation(fields: [FieldID], references: [field_id], onDelete: Cascade, onUpdate: NoAction)
+
+  user   User   @relation(fields: [UserID], references: [user_id], onDelete: Cascade, onUpdate: NoAction)
+  fields Fields @relation("FieldBookings", fields: [FieldID], references: [field_id], onDelete: Cascade, onUpdate: NoAction)
 
   Payments Payments[]
 
   @@map("booking")
 }
 
-enum Booking_Status {
-  Pending
-  Confirmed
-  Cancelled
-}
-
 model Category {
-  category_id   String @id @default(uuid()) @db.VarChar(36)
-  category_name String @db.VarChar(30)
-
-  Fields        Fields[]
-  Option_Fields Option_Fields[]
+  category_id   String          @id @default(uuid()) @db.VarChar(36)
+  category_name String          @db.VarChar(30)
+  fields        Fields[]        @relation("CategoryFields")
+  optionFields  Option_Fields[] @relation("CategoryOptions")
 
   @@map("category")
 }
 
 model Option_Fields {
-  option_field_id String   @id @default(uuid()) @db.VarChar(36)
-  number_of_field String   @db.VarChar(30)
-  CategoryID      String   @db.VarChar(36)
-  category        Category @relation(fields: [CategoryID], references: [category_id], onDelete: Cascade, onUpdate: NoAction)
+  option_field_id String        @id @default(uuid()) @db.Char(36)
+  option_name     String        @db.VarChar(30)
+  CategoryID      String        @db.Char(36)
+  category        Category      @relation("CategoryOptions", fields: [CategoryID], references: [category_id])
+  fields          Field_Option[] @relation("FieldOptionFields") // Quan hệ nhiều-nhiều với Fields
 
-  Fields Fields[]
-
+  @@index([CategoryID], map: "option_fields_CategoryID_fkey")
   @@map("option_fields")
 }
 
 model Fields {
-field_id    String        @id @default(uuid()) @db.VarChar(36)
+  field_id    String        @id @default(uuid()) @db.VarChar(36)
   field_name  String        @db.VarChar(30)
   half_hour   Boolean
   location    String        @db.VarChar(30)
   description String        @db.VarChar(30)
   status      Fields_status @default(Inactive)
   image_url   String        @db.VarChar(30)
-  create_at   DateTime
   OwnerID     String        @db.VarChar(36)
-  user        User          @relation(fields: [OwnerID], references: [user_id], onDelete: Cascade, onUpdate: NoAction)
   CategoryID  String        @db.VarChar(36)
-  category    Category      @relation(fields: [CategoryID], references: [category_id], onDelete: Cascade, onUpdate: NoAction)
-  OptionID    String        @db.VarChar(36)
-  option      Option_Fields @relation(fields: [OptionID], references: [option_field_id], onDelete: Cascade, onUpdate: NoAction)
 
-  Reviews          Reviews[]
-  Booking          Booking[]
-  Space_Per_Hour   Space_Per_Hour[]
-  Hours            Hours[]
-  Fields_Schedule  Fields_Schedules?
-  Promotions       Promotions[]
+  owner     User               @relation("UserFields", fields: [OwnerID], references: [user_id], onDelete: Cascade, onUpdate: NoAction)
+  schedules Fields_Schedules[] @relation("FieldSchedules")
+  options   Field_Option[]     @relation("FieldOptionFields") // Quan hệ nhiều-nhiều với Option_Fields
+  bookings  Booking[]          @relation("FieldBookings")
+  reviews   Reviews[]          @relation("FieldReviews")
+  category  Category           @relation("CategoryFields", fields: [CategoryID], references: [category_id])
 
+  @@index([CategoryID], map: "fields_CategoryID_fkey")
+  @@index([OwnerID], map: "fields_OwnerID_fkey")
   @@map("fields")
 }
 
-enum Fields_status {
-  Active
-  Inactive
+model Field_Option {
+  field_id        String       @db.Char(36)
+  option_field_id String       @db.Char(36)
+  field           Fields       @relation("FieldOptionFields", fields: [field_id], references: [field_id], onDelete: Cascade)
+  optionField     Option_Fields @relation("FieldOptionFields", fields: [option_field_id], references: [option_field_id], onDelete: Cascade)
+
+  @@id([field_id, option_field_id])
+  @@map("field_option")
+}
+
+model Fields_Schedules {
+  schedule_id String    @id @default(uuid()) @db.Char(36)
+  day_of_week DayOfWeek
+  open_time   DateTime?  @db.Time(0)
+  close_time  DateTime?  @db.Time(0)
+  FieldID     String    @db.VarChar(36)
+  isClosed    Boolean  @default(false)
+  field       Fields    @relation("FieldSchedules", fields: [FieldID], references: [field_id])
+
+  @@index([FieldID], map: "fields_schedules_fieldID_fkey")
+  @@map("fields_schedules")
 }
 
 model Reviews {
-  review_id String   @id @default(uuid()) @db.VarChar(36)
+  review_id String   @id @default(uuid()) @db.Char(36)
   rating    Float
   comment   String   @db.VarChar(30)
   create_at DateTime
   UserID    String   @db.VarChar(36)
-  user      User     @relation(fields: [UserID], references: [user_id], onDelete: Cascade, onUpdate: NoAction)
   FieldID   String   @db.VarChar(36)
-  fields    Fields   @relation(fields: [FieldID], references: [field_id], onDelete: Cascade, onUpdate: NoAction)
 
+  user  User   @relation("UserReviews", fields: [UserID], references: [user_id], onDelete: Cascade, onUpdate: NoAction)
+  field Fields @relation("FieldReviews", fields: [FieldID], references: [field_id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([FieldID], map: "reviews_FieldID_fkey")
+  @@index([UserID], map: "reviews_UserID_fkey")
   @@map("reviews")
 }
 
 model Space_Per_Hour {
-  space_per_hour_id String @id @default(uuid()) @db.VarChar(36)
-  from_hour_value   String @db.VarChar(30)
-  to_hour_value     String @db.VarChar(30)
+  space_per_hour_id String  @id @default(uuid()) @db.Char(36)
+  from_hour_value   String  @db.VarChar(30)
+  to_hour_value     String  @db.VarChar(30)
   price             Float
-  FieldID           String @db.VarChar(36)
-  fields            Fields @relation(fields: [FieldID], references: [field_id], onDelete: Cascade, onUpdate: NoAction)
+  FieldID           String  @db.VarChar(36)
+  day_of_week       String?
 
+  @@index([FieldID], map: "space_per_hour_FieldID_fkey")
   @@map("space_per_hour")
 }
 
@@ -186,9 +180,46 @@ model Hours {
   status_hour_on  Status_Hour_on  @default(Enable)
   status_hour_off Status_Hour_off @default(Booked)
   FieldID         String          @db.VarChar(36)
-  fields          Fields          @relation(fields: [FieldID], references: [field_id], onDelete: Cascade, onUpdate: NoAction)
 
+  @@index([FieldID], map: "hours_FieldID_fkey")
   @@map("hours")
+}
+
+model Promotions {
+  promotion_id String   @id @default(uuid()) @db.VarChar(36)
+  discount     Decimal
+  start_date   DateTime
+  end_date     DateTime
+  FieldID      String   @unique @db.VarChar(36)
+
+  @@map("promotions")
+}
+
+enum RoleName {
+  Admin
+  Customer
+  Owner
+}
+
+enum Payments_Method {
+  Banking
+  Cash
+}
+
+enum Payments_Status {
+  Success
+  Failed
+}
+
+enum Booking_Status {
+  Pending
+  Confirmed
+  Cancelled
+}
+
+enum Fields_status {
+  Active
+  Inactive
 }
 
 enum Status_Hour_on {
@@ -200,17 +231,6 @@ enum Status_Hour_off {
   Out_of_time
 }
 
-model Fields_Schedules {
-  schedule_id String    @id @default(uuid()) @db.VarChar(36)
-  day_of_week DayOfWeek
-  open_time   DateTime  @db.Time()
-  close_time  DateTime  @db.Time()
-  FieldID     String    @unique @db.VarChar(36)
-  fields      Fields    @relation(fields: [FieldID], references: [field_id], onDelete: Cascade, onUpdate: NoAction)
-
-  @@map("fields_schedules")
-}
-
 enum DayOfWeek {
   Mon
   Tue
@@ -219,15 +239,4 @@ enum DayOfWeek {
   Fri
   Sat
   Sun
-}
-
-model Promotions {
-  promotion_id String   @id @default(uuid()) @db.VarChar(36)
-  discount     Decimal
-  start_date   DateTime
-  end_date     DateTime
-  FieldID      String   @unique @db.VarChar(36)
-  fields       Fields   @relation(fields: [FieldID], references: [field_id], onDelete: Cascade, onUpdate: NoAction)
-
-  @@map("promotions")
 }

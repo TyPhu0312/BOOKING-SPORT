@@ -21,7 +21,7 @@ import routerPromotions from "./router/promotions.router";
 import routerReviews from "./router/reviews.router";
 import routerRoles from "./router/roles.router";
 import routerSpacePerHour from "./router/space_per_hour.router";
-
+import ownerRouter from './router/owner.router';
 dotenv.config();
 
 const app: Application = express();
@@ -54,6 +54,7 @@ app.use("/api/admin/category", routerCategory);
 app.use("/api/admin/bankaccount", routerBankAccount);
 app.use("/api/admin/booking", routerBooking);
 app.use("/api/admin/fieldschedules", routerFieldsSchedules);
+app.use('/uploads', express.static('uploads'));
 app.use("/api/admin/fields", routerFields);
 app.use("/api/admin/hours", routerHours);
 app.use("/api/admin/optionfields", routerOptionFields);
@@ -62,7 +63,7 @@ app.use("/api/admin/promotions", routerPromotions);
 app.use("/api/admin/reviews", routerReviews);
 app.use("/api/admin/roles", routerRoles);
 app.use("/api/admin/spaceperhour", routerSpacePerHour);
-
+app.use('/api/admin/owner', ownerRouter);
 app.listen(port, async () => {
   console.log(`Server running on port ${port}`);
   try {

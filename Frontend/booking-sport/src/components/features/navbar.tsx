@@ -48,10 +48,10 @@ const Navbar = () => {
             <Link href="/" className="hover:text-black hover:font-bold transition">
               Trang Chủ
             </Link>
-            <Link href="/all-fields" className="hover:text-black hover:font-bold transition">
+            {/* <Link href="/all-fields" className="hover:text-black hover:font-bold transition">
               Tất cả sân
-            </Link>
-            <Link href="owner-fields/register-fields" className="hover:text-black hover:font-bold transition">
+            </Link> */}
+            <Link href="/owner-fields/register-fields" className="hover:text-black hover:font-bold transition">
               Trở thành chủ sân
             </Link>
             <Link href="/about" className="hover:text-black hover:font-bold transition">

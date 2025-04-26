@@ -100,7 +100,7 @@ interface FieldDetail {
 const BookingPage = () => {
     const router = useRouter();
     const searchParams = useSearchParams();
-    const field_id = searchParams.get("field_id");
+    const field_id = searchParams.get("field_id") || localStorage.getItem("last_field_id");
     const [field, setField] = useState<FieldDetail | null>(null);
 
 
@@ -135,6 +135,7 @@ const BookingPage = () => {
             }
         };
         if (field_id) {
+            localStorage.setItem("last_field_id", field_id);
             setForm((prev) => ({
                 ...prev,
                 FieldID: field_id,
@@ -160,34 +161,59 @@ const BookingPage = () => {
     };
 
     const handleSubmit = async () => {
+
         if (!form.booking_date || !form.time_start || !form.time_end) {
             alert("Vui lòng chọn ngày và giờ đặt sân.");
             return;
         }
+        const today = new Date();
+        const bookingDate = new Date(form.booking_date);
+        
+        // Cắt ngày hiện tại thành yyyy-mm-dd để so sánh đúng
+        const todayStr = today.toISOString().split("T")[0];
+        const bookingDateStr = form.booking_date; // Đã là yyyy-mm-dd
+        console.log("ádsadsadfá",today,bookingDate);
+        if (bookingDateStr < todayStr) {
+            alert("Không thể đặt sân cho ngày đã qua.");
+            return;
+        }
+        // Hàm chuyển giờ dạng "HH:mm" thành phút
+        const parseTime = (time: string) => {
+            const [hour, minute] = time.split(":").map(Number);
+            return hour * 60 + minute;
+        };
+
+        const timeStartMinutes = parseTime(form.time_start);
+        const timeEndMinutes = parseTime(form.time_end);
+
+        // Nếu giờ kết thúc <= giờ bắt đầu
+        if (timeEndMinutes <= timeStartMinutes) {
+            alert("Giờ kết thúc phải lớn hơn giờ bắt đầu.");
+            return;
+        }
+
+        // Nếu ngày đặt là hôm nay thì so sánh giờ bắt đầu với giờ hiện tại
+        if (bookingDate.toDateString() === today.toDateString()) {
+            const nowMinutes = today.getHours() * 60 + today.getMinutes();
+            if (timeStartMinutes < nowMinutes) {
+                alert("Giờ bắt đầu phải lớn hơn giờ hiện tại.");
+                return;
+            }
+        }
+
         try {
             const unitPrice = field?.Space_Per_Hour?.length
                 ? Math.min(...field.Space_Per_Hour.map((sph) => sph.price))
                 : 0;
 
-            const timeStart24h = form.time_start;
-            const timeEnd24h = form.time_end;
-
-            const parseTime = (time: string) => {
-                const [hour, minute] = time.split(":").map(Number);
-                return hour * 60 + minute;
-            };
-
-            const startMinutes = parseTime(timeStart24h);
-            const endMinutes = parseTime(timeEnd24h);
-            const durationHours = (endMinutes - startMinutes) / 60;
-
+            const durationHours = (timeEndMinutes - timeStartMinutes) / 60;
             const total_price = Math.round(unitPrice * durationHours);
             const deposit = Math.round(total_price * 0.3);
 
             await axios.post("http://localhost:5000/api/admin/booking/create", {
                 booking_date: form.booking_date,
-                time_start: timeStart24h,
-                time_end: timeEnd24h,
+                time_start: form.time_start,
+                time_end: form.time_end,
                 total_price: total_price.toString(),
                 deposit: deposit.toString(),
                 Status: form.Status,
@@ -196,13 +222,14 @@ const BookingPage = () => {
                 FieldID: form.FieldID,
             });
 
+            router.push("/home");
             alert("Đặt sân thành công!");
-            router.push("/user/bookings");
         } catch (err) {
             console.error("Lỗi khi đặt sân", err);
             alert("Đặt sân thất bại");
         }
     };
+
     useEffect(() => {
         const unitPrice = field?.Space_Per_Hour?.length
             ? Math.min(...field.Space_Per_Hour.map((sph) => sph.price))

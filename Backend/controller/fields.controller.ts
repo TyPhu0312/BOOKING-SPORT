@@ -42,17 +42,17 @@ const validateRequiredFields = (
   const errors: string[] = [];
 
   if (!fieldData.field_name) errors.push("Thiếu trường field_name");
-  else if (fieldData.field_name.length > 30)
-    errors.push("field_name không được dài quá 30 ký tự");
+  else if (fieldData.field_name.length > 255)
+    errors.push("field_name không được dài quá 255 ký tự");
 
   if (fieldData.half_hour === undefined) errors.push("Thiếu trường half_hour");
 
   if (!fieldData.location) errors.push("Thiếu trường location");
-  else if (fieldData.location.length > 30)
+  else if (fieldData.location.length > 255)
     errors.push("location không được dài quá 30 ký tự");
 
   if (!fieldData.description) errors.push("Thiếu trường description");
-  else if (fieldData.description.length > 30)
+  else if (fieldData.description.length > 255)
     errors.push("description không được dài quá 255 ký tự");
 
   if (!user_id) errors.push("Thiếu trường user_id (OwnerID)");

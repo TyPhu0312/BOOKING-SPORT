@@ -30,7 +30,7 @@ export default function HomePage() {
   }, []);
 
   const handleSearch = () => {
-    setShowStadiumList(true); 
+    setShowStadiumList(true);
   };
 
   const mockFilterOptions = {
@@ -64,31 +64,53 @@ export default function HomePage() {
   return (
     <section className="w-screen flex flex-col items-center gap-6">
       {/* Slide ảnh chạy tự động */}
-      <div className="w-full h-[250px] mt-[30px]"> {/* Giảm chiều cao slider */}
-        <Swiper
+      <div className="w-full h-fit mt-[30px]"> {/* Giảm chiều cao slider */}
+        {isMobile ? (
+          <Swiper
+            modules={[Autoplay]}
+            spaceBetween={20}
+            slidesPerView={1}
+            loop={true}
+            autoplay={{ delay: 3000, disableOnInteraction: false }}
+            className="h-full"
+          >
+            {images.map((src, index) => (
+              <SwiperSlide key={index} className="flex items-center justify-center h-full w-full">
+                <Image
+                  src={src}
+                  width={800}
+                  height={1000} 
+                  alt={`Banner ${index + 1}`}
+                  className="object-fit realtive w-fit h-fit"
+                />
+              </SwiperSlide>
+            ))}
+          </Swiper>
+        ) : (<Swiper
           modules={[Autoplay]}
           spaceBetween={20}
-          slidesPerView={1}
+          slidesPerView={4}
           loop={true}
           autoplay={{ delay: 3000, disableOnInteraction: false }}
           className="h-full"
         >
           {images.map((src, index) => (
-            <SwiperSlide key={index} className="flex items-center justify-center h-full">
+            <SwiperSlide key={index} className="flex items-center justify-center h-full w-full">
               <Image
                 src={src}
                 width={800}
-                height={200} // Giảm chiều cao ảnh
+                height={1000} // Giảm chiều cao ảnh
                 alt={`Banner ${index + 1}`}
-                className="object-cover w-full h-full"
+                className="object-fit w-fit h-fit"
               />
             </SwiperSlide>
           ))}
         </Swiper>
+        )}
       </div>
 
       {/* Booking Table */}
-      {isMobile ? (
+      {/*  {isMobile ? (
         <Button
           onClick={() => setShowBookingTable(!showBookingTable)}
           className="w-full cursor-pointer max-w-xs bg-gradient-to-r from-gray-800 to-black text-white font-semibold py-3 
@@ -100,14 +122,14 @@ export default function HomePage() {
         <div className="w-full md:w-1/2 rounded-lg">
           <BookingTable onSearch={handleSearch} />
         </div>
-      )}
+      )} */}
 
-      {isMobile && showBookingTable && (
+      {/*   {isMobile && showBookingTable && (
         <div className="w-full md:w-1/2 rounded-lg">
           <BookingTable onSearch={handleSearch} />
         </div>
       )}
-
+ */}
       {/* Danh sách sân tìm được */}
       {showStadiumList && (
         <TitleListCard title="Sân tìm được">

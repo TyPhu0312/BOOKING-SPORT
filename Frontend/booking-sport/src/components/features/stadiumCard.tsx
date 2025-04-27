@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 // Định nghĩa kiểu dữ liệu cho stadium
 interface Stadium {
-    id: number;
+    id: string;
     name: string;
     location: string;
     price: string;

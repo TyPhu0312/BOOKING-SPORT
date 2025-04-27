@@ -1,4 +1,4 @@
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
@@ -6,12 +6,14 @@ const prisma = new PrismaClient();
 export const getAllCategories = async (req: any, res: any) => {
   try {
     const categories = await prisma.category.findMany({
-      include: { Fields: true },
+      include: {
+        optionFields: true,
+      },
     });
     res.status(200).json(categories);
   } catch (error: any) {
     console.error(error);
-    res.status(500).json({ error: error.message || 'Lỗi server' });
+    res.status(500).json({ error: error.message || "Lỗi server" });
   }
 };
 
@@ -21,13 +23,17 @@ export const getCategoryById = async (req: any, res: any) => {
     const { id } = req.params;
     const category = await prisma.category.findUnique({
       where: { category_id: id },
-      include: { Fields: true },
+      include: {
+        fields: true,
+        optionFields: true,
+      },
     });
-    if (!category) return res.status(404).json({ error: 'Không tìm thấy danh mục' });
+    if (!category)
+      return res.status(404).json({ error: "Không tìm thấy danh mục" });
     res.status(200).json(category);
   } catch (error: any) {
     console.error(error);
-    res.status(500).json({ error: error.message || 'Lỗi server' });
+    res.status(500).json({ error: error.message || "Lỗi server" });
   }
 };
 
@@ -35,7 +41,8 @@ export const getCategoryById = async (req: any, res: any) => {
 export const createCategory = async (req: any, res: any) => {
   try {
     const { category_name } = req.body;
-    if (!category_name) return res.status(400).json({ error: 'Thiếu tên danh mục' });
+    if (!category_name?.trim())
+      return res.status(400).json({ error: "Thiếu tên danh mục" });
 
     const newCategory = await prisma.category.create({
       data: { category_name },
@@ -43,7 +50,7 @@ export const createCategory = async (req: any, res: any) => {
     res.status(201).json(newCategory);
   } catch (error: any) {
     console.error(error);
-    res.status(500).json({ error: error.message || 'Lỗi server' });
+    res.status(500).json({ error: error.message || "Lỗi server" });
   }
 };
 
@@ -59,11 +66,11 @@ export const updateCategory = async (req: any, res: any) => {
     });
     res.status(200).json(updatedCategory);
   } catch (error: any) {
-    if (error.code === 'P2025') {
-      return res.status(404).json({ error: 'Không tìm thấy danh mục' });
+    if (error.code === "P2025") {
+      return res.status(404).json({ error: "Không tìm thấy danh mục" });
     }
     console.error(error);
-    res.status(500).json({ error: error.message || 'Lỗi server' });
+    res.status(500).json({ error: error.message || "Lỗi server" });
   }
 };
 
@@ -71,13 +78,15 @@ export const updateCategory = async (req: any, res: any) => {
 export const deleteCategory = async (req: any, res: any) => {
   try {
     const { id } = req.params;
-    await prisma.category.delete({ where: { category_id: id } });
-    res.status(200).json({ message: 'Xóa danh mục thành công' });
+    await prisma.category.delete({
+      where: { category_id: id },
+    });
+    res.status(200).json({ message: "Xóa danh mục thành công" });
   } catch (error: any) {
-    if (error.code === 'P2025') {
-      return res.status(404).json({ error: 'Không tìm thấy danh mục' });
+    if (error.code === "P2025") {
+      return res.status(404).json({ error: "Không tìm thấy danh mục" });
     }
     console.error(error);
-    res.status(500).json({ error: error.message || 'Lỗi server' });
+    res.status(500).json({ error: error.message || "Lỗi server" });
   }
 };

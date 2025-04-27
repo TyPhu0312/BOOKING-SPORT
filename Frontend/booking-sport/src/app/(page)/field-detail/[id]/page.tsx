@@ -1,32 +1,26 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import { Card, CardContent } from "@/components/ui/card";
 import { useRouter, useParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import {
-    Select,
-    SelectTrigger,
-    SelectValue,
-    SelectContent,
-    SelectItem,
-} from "@/components/ui/select";
-import axios, { AxiosError } from "axios";
+import axios from "axios";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import Image from "next/image";
 import { FaMapMarkerAlt } from "react-icons/fa";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import HeartButton from "@/components/features/heart-button";
 import TimeSlotGrid from "@/components/features/TimeSlotGrid";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar as CalendarIcon } from "lucide-react";
+import { format } from "date-fns";
 
-interface Space_Per_Hour {
+interface SpacePerHour {
     space_per_hour_id: string;
     from_hour_value: string;
     to_hour_value: string;
     price: number;
     FieldID: string;
+    day_of_week: string;
 }
 
 interface Booking {
@@ -40,6 +34,15 @@ interface Booking {
     prove_payment: string;
     UserID: string;
     FieldID: string;
+}
+
+interface FieldSchedule {
+    schedule_id: string;
+    day_of_week: string;
+    open_time: string;
+    close_time: string;
+    FieldID: string;
+    isClosed: boolean;
 }
 
 interface FieldDetail {
@@ -81,7 +84,7 @@ interface FieldDetail {
         FieldID: string;
     }[];
     Booking: Booking[];
-    Space_Per_Hour: Space_Per_Hour[];
+    Space_Per_Hour: SpacePerHour[];
     Hours: {
         hours_id: string;
         hour_value: number;
@@ -89,20 +92,7 @@ interface FieldDetail {
         status_hour_off: string;
         FieldID: string;
     }[];
-    Fields_Schedule: {
-        schedule_id: string;
-        day_of_week: string;
-        open_time: string;
-        close_time: string;
-        FieldID: string;
-    };
-    Promotions: {
-        promotion_id: string;
-        discount: string;
-        start_date: string;
-        end_date: string;
-        FieldID: string;
-    }[];
+    schedules: FieldSchedule[];
 }
 
 interface TimeSlot {
@@ -115,28 +105,29 @@ interface DaySlot {
     dayLabel: string;
     date: string;
     slots: TimeSlot[];
+    isClosed: boolean;
 }
 
 const FieldDetail = () => {
     const router = useRouter();
     const { id } = useParams();
     const field_id = id as string;
-
-    const [form, setForm] = useState({
-        name: "",
-        email: "",
-        phone: "",
-        date: new Date(),
-        duration: "1",
-        startTime: "",
-        note: "",
-    });
-
     const [images, setImages] = useState<string[]>([]);
     const [fieldInfo, setFieldInfo] = useState<FieldDetail | null>(null);
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
     const [schedule, setSchedule] = useState<DaySlot[]>([]);
     const [error, setError] = useState<string | null>(null);
+    const [startDate, setStartDate] = useState<Date>(() => {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        return today;
+    });
+    const [endDate, setEndDate] = useState<Date>(() => {
+        const date = new Date();
+        date.setDate(date.getDate() + 13);
+        date.setHours(0, 0, 0, 0);
+        return date;
+    });
 
     // Kiểm tra đăng nhập
     useEffect(() => {
@@ -152,10 +143,9 @@ const FieldDetail = () => {
         const fakeImages = ["/images/stadium.jpg", "/images/stadium.jpg", "/images/stadium.jpg", "/images/stadium.jpg", "/images/stadium.jpg"];
 
         const fetchField = async () => {
-            // Kiểm tra field_id trước khi gọi API
             if (!field_id || field_id === "undefined") {
                 setError("Không tìm thấy ID sân. Vui lòng thử lại.");
-                setImages(fakeImages); // Dùng fakeImages làm fallback
+                setImages(fakeImages);
                 return;
             }
 
@@ -163,14 +153,10 @@ const FieldDetail = () => {
                 const res = await axios.get<FieldDetail>(`http://localhost:5000/api/admin/fields/getById/${field_id}`);
                 const fieldData = res.data;
 
-                // Chuẩn hóa image_url
                 let imageUrl = fieldData.image_url;
-                // Nếu image_url không bắt đầu bằng http:// hoặc https://, thêm tiền tố
                 if (imageUrl && !imageUrl.startsWith("http://") && !imageUrl.startsWith("https://")) {
-                    // Giả sử backend phục vụ hình ảnh từ http://localhost:5000/images/
                     imageUrl = `http://localhost:5000/images/${imageUrl}`;
                 } else if (!imageUrl) {
-                    // Nếu image_url không tồn tại, dùng hình ảnh mặc định
                     imageUrl = fakeImages[0];
                 }
 
@@ -192,140 +178,165 @@ const FieldDetail = () => {
             try {
                 const bookingsRes = await axios.get<Booking[]>("http://localhost:5000/api/admin/booking/get");
                 const bookings = bookingsRes.data.filter((b) => b.FieldID === field_id);
+                console.log("Bookings:", bookings);
 
                 const scheduleRes = await axios.get<FieldDetail>(`http://localhost:5000/api/admin/fields/getById/${field_id}`);
-                const fieldSchedule = scheduleRes.data.Fields_Schedule;
+                const fieldSchedules = scheduleRes.data.schedules;
+                const spacePerHour = scheduleRes.data.Space_Per_Hour;
+                console.log("Field Schedules:", fieldSchedules);
+                console.log("Space Per Hour:", spacePerHour);
+
+                if (!fieldSchedules || fieldSchedules.length === 0) {
+                    setError("Sân chưa được thiết lập lịch hoạt động. Vui lòng liên hệ quản trị viên.");
+                    setSchedule([]);
+                    return;
+                }
 
                 const newSchedule: DaySlot[] = [];
+                const dayOfWeekMap: { [key: number]: string } = {
+                    0: "Chủ Nhật",
+                    1: "Thứ Hai",
+                    2: "Thứ Ba",
+                    3: "Thứ Tư",
+                    4: "Thứ Năm",
+                    5: "Thứ Sáu",
+                    6: "Thứ Bảy",
+                };
+                const dayOfWeekShortMap: { [key: number]: string } = {
+                    0: "Sun",
+                    1: "Mon",
+                    2: "Tue",
+                    3: "Wed",
+                    4: "Thu",
+                    5: "Fri",
+                    6: "Sat",
+                };
+
+                if (endDate < startDate) {
+                    setError("Ngày kết thúc không được trước ngày bắt đầu.");
+                    setSchedule([]);
+                    return;
+                }
+
                 const today = new Date();
-                for (let i = 0; i < 14; i++) {
-                    const date = new Date(today);
-                    date.setDate(today.getDate() + i);
-                    const dayLabel = date.toLocaleDateString("en-US", { weekday: "long" });
+                today.setHours(0, 0, 0, 0);
+                console.log("Today:", today);
+                console.log("Start Date:", startDate);
+                console.log("End Date:", endDate);
+
+                if (startDate < today) {
+                    setStartDate(today);
+                    setError("Ngày bắt đầu không được trước ngày hiện tại. Đã điều chỉnh về hôm nay.");
+                    return;
+                }
+
+                const timeDiff = endDate.getTime() - startDate.getTime();
+                const daysDiff = Math.ceil(timeDiff / (1000 * 3600 * 24)) + 1;
+
+                if (daysDiff > 30) {
+                    setError("Khoảng thời gian không được vượt quá 30 ngày.");
+                    setSchedule([]);
+                    return;
+                }
+
+                for (let i = 0; i < daysDiff; i++) {
+                    const date = new Date(startDate.getTime());
+                    date.setDate(startDate.getDate() + i);
+                    date.setHours(0, 0, 0, 0);
+                    console.log("Processing Date:", date);
+
+                    const dayOfWeekIndex = date.getDay();
+                    const dayOfWeek = dayOfWeekShortMap[dayOfWeekIndex];
+                    const dayLabel = dayOfWeekMap[dayOfWeekIndex] || "Unknown";
                     const dateStr = date.toISOString().split("T")[0];
 
-                    // Lấy giờ mở/đóng từ fieldSchedule
-                    const openHour = parseInt(fieldSchedule.open_time.split("T")[1].split(":")[0]);
-                    const closeHour = parseInt(fieldSchedule.close_time.split("T")[1].split(":")[0]);
+                    const fieldSchedule = fieldSchedules.find((schedule) => schedule.day_of_week === dayOfWeek);
+                    const isClosed = !fieldSchedule || fieldSchedule.isClosed || !fieldSchedule.open_time || !fieldSchedule.close_time;
 
-                    const slots = Array.from({ length: 24 }, (_, hour) => {
+                    if (isClosed) {
+                        newSchedule.push({
+                            dayLabel,
+                            date: dateStr,
+                            slots: [],
+                            isClosed: true,
+                        });
+                        continue;
+                    }
+
+                    const parseTime = (time: string): number => {
+                        const hour = parseInt(time.split(":")[0].split("T")[1] || time.split(":")[0]);
+                        return isNaN(hour) ? 0 : hour;
+                    };
+
+                    const openHour = parseTime(fieldSchedule.open_time);
+                    const closeHour = parseTime(fieldSchedule.close_time);
+
+                    if (openHour >= closeHour) {
+                        newSchedule.push({
+                            dayLabel,
+                            date: dateStr,
+                            slots: [],
+                            isClosed: true,
+                        });
+                        continue;
+                    }
+
+                    const relevantPrices = spacePerHour.filter((sph) => sph.day_of_week === dayOfWeek);
+                    console.log("Relevant Prices for", dayOfWeek, ":", relevantPrices);
+
+                    const slots: TimeSlot[] = [];
+                    for (let hour = openHour; hour < closeHour; hour++) {
                         const hourStr = `${hour.toString().padStart(2, "0")}:00`;
+
                         const isBooked = bookings.some((b) => {
-                            const bookingDate = b.booking_date.split("T")[0];
-                            const bookingStart = parseInt(b.time_start.split("T")[1].split(":")[0]);
-                            const bookingEnd = parseInt(b.time_end.split("T")[1].split(":")[0]);
-                            return bookingDate === dateStr && hour >= bookingStart && hour < bookingEnd;
+                            const bookingDate = new Date(b.booking_date);
+                            bookingDate.setHours(0, 0, 0, 0);
+                            const bookingDateStr = bookingDate.toISOString().split("T")[0];
+                            const bookingStart = parseInt(b.time_start.includes("T") ? b.time_start.split("T")[1].split(":")[0] : b.time_start.split(":")[0]);
+                            const bookingEnd = parseInt(b.time_end.includes("T") ? b.time_end.split("T")[1].split(":")[0] : b.time_end.split(":")[0]);
+                            return bookingDateStr === dateStr && hour >= bookingStart && hour < bookingEnd;
                         });
 
-                        const isWithinOperatingHours = hour >= openHour && hour < closeHour;
+                        const priceEntry = relevantPrices.find((sph) => {
+                            const fromHour = parseInt(sph.from_hour_value.split(":")[0]);
+                            const toHour = parseInt(sph.to_hour_value.split(":")[0]);
+                            return hour >= fromHour && hour < toHour;
+                        });
 
-                        const price = fieldInfo?.Space_Per_Hour?.length
-                            ? Math.min(...fieldInfo.Space_Per_Hour.map((sph) => sph.price))
-                            : 0;
+                        const price = priceEntry ? priceEntry.price : 0;
 
-                        return { time: hourStr, available: !isBooked && isWithinOperatingHours, price };
+                        slots.push({
+                            time: hourStr,
+                            available: !isBooked,
+                            price,
+                        });
+                    }
+
+                    newSchedule.push({
+                        dayLabel,
+                        date: dateStr,
+                        slots,
+                        isClosed: false,
                     });
+                }
 
-                    newSchedule.push({ dayLabel, date: dateStr, slots });
+                if (newSchedule.every((day) => day.isClosed)) {
+                    setError("Không có ngày nào mở cửa trong khoảng thời gian được chọn.");
+                    setSchedule([]);
+                    return;
                 }
 
                 setSchedule(newSchedule);
+                console.log("Generated Schedule:", newSchedule);
             } catch (error) {
                 console.error("Lỗi khi lấy lịch:", error);
                 setError("Không thể tải lịch sân. Vui lòng thử lại.");
+                setSchedule([]);
             }
         };
 
         if (field_id && fieldInfo) fetchScheduleAndBookings();
-    }, [field_id, fieldInfo]);
-
-    const generateTimeOptions = () => {
-        const times: string[] = [];
-        for (let hour = 0; hour < 24; hour++) {
-            const hourStr = hour.toString().padStart(2, '0');
-            times.push(`${hourStr}:00`);
-            times.push(`${hourStr}:30`);
-        }
-        return times;
-    };
-
-    const handleSubmit = async () => {
-        setError(null);
-
-        if (!form.startTime || !form.duration || !form.date) {
-            setError("Vui lòng chọn ngày, giờ bắt đầu và thời lượng.");
-            return;
-        }
-
-        try {
-            const unitPrice = fieldInfo?.Space_Per_Hour?.length
-                ? Math.min(...fieldInfo.Space_Per_Hour.map((sph) => sph.price))
-                : 0;
-
-            const parseTime = (time: string) => {
-                const [hour, minute] = time.split(":").map(Number);
-                return hour * 60 + minute;
-            };
-
-            const startMinutes = parseTime(form.startTime);
-            const durationMinutes = parseFloat(form.duration) * 60;
-            const endMinutes = startMinutes + durationMinutes;
-
-            const endTime = `${Math.floor(endMinutes / 60).toString().padStart(2, "0")}:${(endMinutes % 60).toString().padStart(2, "0")}`;
-
-            const total_price = Math.round(unitPrice * parseFloat(form.duration));
-            const deposit = Math.round(total_price * 0.3);
-
-            const userId = localStorage.getItem("user_id");
-            if (!userId) {
-                alert("Vui lòng đăng nhập để đặt sân!");
-                router.push("/login");
-                return;
-            }
-
-            // Kiểm tra khung giờ khả dụng
-            const bookingsRes = await axios.get<Booking[]>("http://localhost:5000/api/admin/booking/get");
-            const bookings = bookingsRes.data.filter(
-                (b) => b.FieldID === field_id && b.booking_date.split("T")[0] === form.date.toISOString().split("T")[0]
-            );
-
-            const isTimeSlotAvailable = bookings.some((b) => {
-                const bookingStart = parseTime(b.time_start.split("T")[1].substring(0, 5));
-                const bookingEnd = parseTime(b.time_end.split("T")[1].substring(0, 5));
-                return (
-                    (startMinutes >= bookingStart && startMinutes < bookingEnd) ||
-                    (endMinutes > bookingStart && endMinutes <= bookingEnd) ||
-                    (startMinutes <= bookingStart && endMinutes >= bookingEnd)
-                );
-            });
-
-            if (isTimeSlotAvailable) {
-                setError("Khung giờ đã chọn không khả dụng. Vui lòng chọn khung giờ khác.");
-                return;
-            }
-
-            const response = await axios.post("http://localhost:5000/api/admin/booking/create", {
-                booking_date: form.date.toISOString().split("T")[0],
-                time_start: form.startTime,
-                time_end: endTime,
-                total_price: total_price.toString(),
-                deposit: deposit.toString(),
-                Status: "Pending",
-                prove_payment: "",
-                UserID: userId,
-                FieldID: field_id,
-            });
-
-            if (response.status === 201) {
-                alert("Đặt sân thành công!");
-                router.push("/user/bookings");
-            }
-        } catch (err: unknown) {
-            const error = err as AxiosError<{ error?: string }>;
-            console.error("Lỗi khi đặt sân", error);
-            setError(error.response?.data?.error || "Đặt sân thất bại. Vui lòng thử lại.");
-        }
-    };
+    }, [field_id, fieldInfo, startDate, endDate]);
 
     const prevImage = () => setCurrentImageIndex((prev) => (prev - 1 + images.length) % images.length);
     const nextImage = () => setCurrentImageIndex((prev) => (prev + 1) % images.length);
@@ -339,7 +350,7 @@ const FieldDetail = () => {
                     <h1 className="pl-[20px] text-3xl font-bold md:text-3xl md:pl-7">{fieldInfo?.field_name}</h1>
                     <div className="flex items-center gap-2 md:pl-6">
                         <FaMapMarkerAlt size={24} className="text-red-500 ml-[20px] md:ml-[0px]" />
-                        <h3 className="text-md ">{fieldInfo?.location}</h3>
+                        <h3 className="text-md">{fieldInfo?.location}</h3>
                     </div>
                 </div>
             </div>
@@ -379,7 +390,7 @@ const FieldDetail = () => {
                     </div>
                 </ScrollArea>
 
-                <div className=" md:1/3 p-4 w-full md:max-w-[500px] md:w-2/4 h-auto rounded-lg flex-col justify-center gap-1 flex">
+                <div className="md:1/3 p-4 w-full md:max-w-[500px] md:w-2/4 h-auto rounded-lg flex-col justify-center gap-1 flex">
                     <Button
                         className="bg-black text-xl text-white hover:bg-gray-900 cursor-pointer mb-4 w-full md:w-auto block md:hidden"
                         onClick={() => router.push(`/OrderField?field_id=${field_id}`)}
@@ -390,7 +401,11 @@ const FieldDetail = () => {
                     <div className="space-y-2 text-sm text-gray-700 mt-4">
                         <div className="flex justify-between">
                             <span className="font-bold text-[18px]">Giờ mở cửa:</span>
-                            <span className="text-gray-600 text-[18px]">{(fieldInfo.Fields_Schedule.open_time).substring(11, 16)}</span>
+                            <span className="text-gray-600 text-[18px]">
+                                {fieldInfo.schedules?.length > 0 && fieldInfo.schedules[0].open_time
+                                    ? fieldInfo.schedules[0].open_time.substring(11, 16)
+                                    : "Chưa có thông tin"}
+                            </span>
                         </div>
                         <div className="flex justify-between">
                             <span className="font-bold text-[18px]">Số lượng sân:</span>
@@ -398,9 +413,11 @@ const FieldDetail = () => {
                         </div>
                         <div className="flex justify-between">
                             <span className="font-bold text-[18px]">Giá sân:</span>
-                            <span className="text-gray-600 text-[18px]">{(fieldInfo.Space_Per_Hour?.length
-                                ? Math.min(...fieldInfo.Space_Per_Hour.map((sph: Space_Per_Hour) => sph.price))
-                                : 0).toLocaleString("vi-VN", { style: "currency", currency: "VND" })}</span>
+                            <span className="text-gray-600 text-[18px]">
+                                {(fieldInfo.Space_Per_Hour?.length
+                                    ? Math.min(...fieldInfo.Space_Per_Hour.map((sph: SpacePerHour) => sph.price))
+                                    : 0).toLocaleString("vi-VN", { style: "currency", currency: "VND" })}
+                            </span>
                         </div>
                     </div>
                     <div className="mt-5">
@@ -422,60 +439,52 @@ const FieldDetail = () => {
             </div>
 
             <div className="max-w-[1400px] mx-auto p-4 flex-col md:flex-row md:flex gap-4">
-                <div className="w-full md:w-1/3 space-y-4">
-                    <Card>
-                        <CardContent className="space-y-4 pt-4 flex justify-center items-center flex-col">
-                            <h1 className="text-2xl font-bold">Đặt sân tại đây</h1>
-                            {error && <p className="text-red-500">{error}</p>}
-                            <Input placeholder="Họ và tên" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
-                            <Input placeholder="Email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
-                            <Input placeholder="Số điện thoại" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
-                            <Calendar mode="single" selected={form.date} onSelect={(date) => date && setForm({ ...form, date })} />
-                            <div className="flex gap-4 w-full items-center justify-center">
-                                <Select
-                                    value={form.startTime}
-                                    onValueChange={(value) => setForm({ ...form, startTime: value })}
-                                >
-                                    <SelectTrigger className="w-full">
-                                        <SelectValue placeholder="Chọn thời gian bắt đầu" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {generateTimeOptions().map((time) => (
-                                            <SelectItem key={time} value={time}>
-                                                {time}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                                <Select
-                                    value={form.duration}
-                                    onValueChange={(value) => setForm({ ...form, duration: value })}
-                                >
-                                    <SelectTrigger className="w-full">
-                                        <SelectValue placeholder="Chọn thời lượng" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="1">1 giờ</SelectItem>
-                                        <SelectItem value="1.5">1.5 giờ</SelectItem>
-                                        <SelectItem value="2">2 giờ</SelectItem>
-                                        <SelectItem value="2.5">2.5 giờ</SelectItem>
-                                        <SelectItem value="3">3 giờ</SelectItem>
-                                    </SelectContent>
-                                </Select>
-                            </div>
-                            <Textarea
-                                placeholder="Ghi chú"
-                                value={form.note}
-                                onChange={(e) => setForm({ ...form, note: e.target.value })}
-                            />
-                            <Button onClick={handleSubmit}>Đặt sân tại đây</Button>
-                        </CardContent>
-                    </Card>
-                </div>
-
-                <div className="p-4 space-y-4">
+                <div className="p-4 space-y-4 w-full">
                     <h1 className="text-2xl font-bold">Chi tiết sân</h1>
-                    <div className="w-full overflow-x-auto">
+                    <div className="flex gap-4 mb-4">
+                        <div>
+                            <label className="block mb-1 font-medium">Từ ngày:</label>
+                            <Popover>
+                                <PopoverTrigger asChild>
+                                    <Button variant="outline" className="w-[240px] justify-start text-left font-normal">
+                                        <CalendarIcon className="mr-2 h-4 w-4" />
+                                        {format(startDate, "dd/MM/yyyy")}
+                                    </Button>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-auto p-0">
+                                    <Calendar
+                                        mode="single"
+                                        selected={startDate}
+                                        onSelect={(date) => date && setStartDate(date)}
+                                        initialFocus
+                                        disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
+                                    />
+                                </PopoverContent>
+                            </Popover>
+                        </div>
+                        <div>
+                            <label className="block mb-1 font-medium">Đến ngày:</label>
+                            <Popover>
+                                <PopoverTrigger asChild>
+                                    <Button variant="outline" className="w-[240px] justify-start text-left font-normal">
+                                        <CalendarIcon className="mr-2 h-4 w-4" />
+                                        {format(endDate, "dd/MM/yyyy")}
+                                    </Button>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-auto p-0">
+                                    <Calendar
+                                        mode="single"
+                                        selected={endDate}
+                                        onSelect={(date) => date && setEndDate(date)}
+                                        initialFocus
+                                        disabled={(date) => date < startDate}
+                                    />
+                                </PopoverContent>
+                            </Popover>
+                        </div>
+                    </div>
+                    {error && <p className="text-red-500">{error}</p>}
+                    <div className="w-full max-w-full overflow-x-auto">
                         <TimeSlotGrid schedule={schedule} />
                     </div>
                 </div>

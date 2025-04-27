@@ -1,14 +1,17 @@
+"use client";
 import { useEffect, useState } from "react";
-import axios from "axios";  // Đảm bảo đã cài axios
+import axios from "axios";
 import StadiumCard from "@/components/features/stadiumCard";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 
+// Định nghĩa interface Stadium cho StadiumCardList
 interface Stadium {
-    id: number;
+    id: string; // Đồng bộ với field_id (chuỗi UUID từ API)
     name: string;
     location: string;
     price: string;
 }
+
 interface Space_Per_Hour {
     space_per_hour_id: string;
     from_hour_value: string;
@@ -17,7 +20,7 @@ interface Space_Per_Hour {
     FieldID: string;
 }
 
-export interface FieldDetail {
+interface FieldDetail {
     field_id: string;
     field_name: string;
     half_hour: boolean;
@@ -97,46 +100,32 @@ export interface FieldDetail {
     }[];
 }
 
-
 export default function StadiumCardList() {
-    const [stadiums, setStadiums] = useState<Stadium[]>([]); // Tạo kiểu dữ liệu cho stadiums
+    const [stadiums, setStadiums] = useState<Stadium[]>([]);
 
     useEffect(() => {
         const fetchStadiums = async () => {
             try {
                 const res = await axios.get("http://localhost:5000/api/admin/fields/get");
-                setStadiums(res.data);  // Gán dữ liệu vào state
-            } catch (err) {
-                console.error("Lỗi khi fetch sân:", err);
-            }
-        };
 
-        fetchStadiums();
-    }, []);
+                // Lọc các field có status là "Active" và chuyển đổi dữ liệu
+                const transformedData = res.data
+                    .filter((field: FieldDetail) => field.status === "Active")
+                    .map((field: FieldDetail) => {
+                        const minPrice = field.Space_Per_Hour?.length
+                            ? Math.min(...field.Space_Per_Hour.map((sph: Space_Per_Hour) => sph.price))
+                            : 0;
 
-    // Debug stadiums state
-    useEffect(() => {
-        console.log("State stadiums:", stadiums);
-    }, [stadiums]); useEffect(() => {
-        const fetchStadiums = async () => {
-            try {
-                const res = await axios.get("http://localhost:5000/api/admin/fields/get");
-
-                // Chuyển đổi dữ liệu
-                const transformedData = res.data.map((field: FieldDetail) => {
-                    const minPrice = field.Space_Per_Hour?.length
-                        ? Math.min(...field.Space_Per_Hour.map((sph: Space_Per_Hour) => sph.price))
-                        : 0;
-
-                    return {
-                        id: field.field_id,
-                        name: field.field_name,
-                        location: field.location,
-                        price: minPrice.toLocaleString("vi-VN", { style: "currency", currency: "VND" }),
-                    };
-                });
+                        return {
+                            id: field.field_id, // field_id là chuỗi
+                            name: field.field_name,
+                            location: field.location,
+                            price: minPrice.toLocaleString("vi-VN", { style: "currency", currency: "VND" }),
+                        };
+                    });
 
                 setStadiums(transformedData);
+                console.log("Active stadiums:", transformedData);
             } catch (err) {
                 console.error("Lỗi khi fetch sân:", err);
             }
@@ -145,24 +134,22 @@ export default function StadiumCardList() {
         fetchStadiums();
     }, []);
 
-
     return (
-        <div className="relative w-full max-w-[1700px]">
+        <div className="relative w-full max-w-[1700px] mx-auto">
             <div className="relative w-full">
                 <Carousel className="h-auto w-full overflow-hidden">
                     <CarouselContent className="flex">
                         {stadiums.map((stadium, index) => (
                             <CarouselItem
-                                key={`${stadium.id}-${index}`} // Thêm index để đảm bảo uniqueness
+                                key={`${stadium.id}-${index}`}
                                 className="basis-full sm:basis-1/2 lg:basis-1/4 xl:basis-1/5 2xl:basis-1/6 3xl:basis-1/7 flex justify-center"
                             >
                                 <StadiumCard stadium={stadium} />
                             </CarouselItem>
                         ))}
-
                     </CarouselContent>
                     <CarouselPrevious className="absolute cursor-pointer left-4 md:left-6 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-gray-200 text-black hover:bg-gray-400 hover:scale-110 transition-all duration-200 z-10" />
-                    <CarouselNext className="absolute  cursor-pointer right-4 md:right-6 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-gray-200 text-black hover:bg-gray-400 hover:scale-110 transition-all duration-200 z-10" />
+                    <CarouselNext className="absolute cursor-pointer right-4 md:right-6 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-gray-200 text-black hover:bg-gray-400 hover:scale-110 transition-all duration-200 z-10" />
                 </Carousel>
             </div>
         </div>

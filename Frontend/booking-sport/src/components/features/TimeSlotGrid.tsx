@@ -1,6 +1,8 @@
-import React, { useState, useEffect } from "react";
+// components/features/TimeSlotGrid.tsx
+import React from "react";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils"; // Hàm tiện ích để kết hợp className (nếu bạn dùng shadcn/ui)
 
-// Khai báo kiểu dữ liệu
 interface TimeSlot {
     time: string;
     available: boolean;
@@ -11,102 +13,90 @@ interface DaySlot {
     dayLabel: string;
     date: string;
     slots: TimeSlot[];
+    isClosed: boolean;
 }
 
 interface TimeSlotGridProps {
     schedule: DaySlot[];
 }
+
 const TimeSlotGrid: React.FC<TimeSlotGridProps> = ({ schedule }) => {
-    const [selectedSlot, setSelectedSlot] = useState<string | null>(null);
-    const [filteredSchedule, setFilteredSchedule] = useState<DaySlot[]>([]);
-    const [startDate, setStartDate] = useState<string>('');
-    const [endDate, setEndDate] = useState<string>('');
-
-    const handleSlotClick = (time: string) => {
-        setSelectedSlot(time === selectedSlot ? null : time);
+    // Hàm xử lý khi người dùng bấm vào một khung giờ
+    const handleSlotClick = (day: DaySlot, slot: TimeSlot) => {
+        if (day.isClosed || !slot.available) return; // Không làm gì nếu ngày đóng cửa hoặc khung giờ đã được đặt
+        alert(`Bạn đã chọn khung giờ ${slot.time} vào ngày ${day.dayLabel} (${day.date}) với giá ${slot.price.toLocaleString("vi-VN", { style: "currency", currency: "VND" })}`);
+        // Thêm logic đặt sân ở đây (ví dụ: gọi API để đặt sân)
     };
 
-    const handleDateFilterChange = () => {
-        const filtered = schedule.filter((day) => {
-            return (new Date(day.date) >= new Date(startDate)) && (new Date(day.date) <= new Date(endDate));
-        });
-        setFilteredSchedule(filtered);
-    };
+    // Nếu không có lịch, hiển thị thông báo
+    if (!schedule || schedule.length === 0) {
+        return <p className="text-center text-gray-500">Không có lịch sân để hiển thị</p>;
+    }
 
-    useEffect(() => {
-        setFilteredSchedule(schedule);
-    }, [schedule]);
+    // Tìm tất cả các khung giờ duy nhất để làm hàng tiêu đề
+    const allTimes = Array.from(
+        new Set(
+            schedule
+                .flatMap((day) => day.slots.map((slot) => slot.time))
+                .sort((a, b) => a.localeCompare(b))
+        )
+    );
 
     return (
-        <div className="rounded-lg overflow-hidden shadow min-w-max">
-            {/* Bộ lọc ngày */}
-            <div className="flex flex-wrap gap-2 mb-4">
-                <input
-                    type="date"
-                    value={startDate}
-                    onChange={(e) => setStartDate(e.target.value)}
-                    className="border p-2"
-                />
-                <input
-                    type="date"
-                    value={endDate}
-                    onChange={(e) => setEndDate(e.target.value)}
-                    className="border p-2"
-                />
-                <button
-                    onClick={handleDateFilterChange}
-                    className="bg-blue-500 text-white p-2 rounded"
-                >
-                    Filter
-                </button>
-            </div>
-
-            {/* Bảng slot với scroll ngang */}
-            <div className="w-full overflow-x-auto">
-                <div className="min-w-[2000px]">
-                    {/* Tiêu đề giờ */}
-                    <div className="grid grid-cols-[minmax(150px,_200px)_repeat(24,_minmax(80px,_1fr))] bg-gray-100">
-
-                        <div></div>
-                        {Array.from({ length: 24 }, (_, index) => {
-                            const hour = String(index).padStart(2, '0');
-                            return (
-                                <div
-                                    key={index}
-                                    className="px-4 py-2 font-semibold text-center text-gray-700 border-l"
-                                >
-                                    {hour}:00
-                                </div>
-                            );
-                        })}
-                    </div>
-
-                    {/* Dữ liệu theo từng ngày */}
-                    {filteredSchedule.map((day, index) => (
-                        <div key={index} className="grid grid-cols-[200px_repeat(24,_minmax(80px,_1fr))] border-b">
-                            <div className="px-4 py-2 font-semibold text-gray-800 border-r whitespace-nowrap">
-                                {day.dayLabel} - {day.date}
-                            </div>
-                            {Array.from({ length: 24 }, (_, hour) => {
-                                const hourStr = String(hour).padStart(2, '0') + ':00';
-                                const slot = day.slots.find(s => s.time === hourStr);
-
+        <div className="overflow-x-auto">
+            <table className="w-full border-collapse">
+                {/* Tiêu đề cột (các ngày) */}
+                <thead>
+                    <tr>
+                        <th className="border p-2 bg-gray-100 sticky left-0 z-10">Thời gian</th>
+                        {schedule.map((day) => (
+                            <th
+                                key={day.date}
+                                className={cn(
+                                    "border p-2 text-center",
+                                    day.isClosed ? "bg-gray-300 text-gray-500" : "bg-gray-100"
+                                )}
+                            >
+                                {day.dayLabel} ({new Date(day.date).toLocaleDateString("vi-VN")})
+                            </th>
+                        ))}
+                    </tr>
+                </thead>
+                {/* Nội dung (các khung giờ) */}
+                <tbody>
+                    {allTimes.map((time) => (
+                        <tr key={time}>
+                            <td className="border p-2 bg-gray-100 sticky left-0 z-10">{time}</td>
+                            {schedule.map((day) => {
+                                const slot = day.slots.find((s) => s.time === time);
                                 return (
-                                    <div
-                                        key={hour}
-                                        className={`px-2 py-1 text-sm text-center border-l cursor-pointer transition-all duration-300 ease-in-out
-                                ${slot?.available ? 'bg-green-100 text-green-800 hover:bg-green-200' : 'bg-gray-300 text-gray-600 hover:bg-gray-400'}
-                                ${selectedSlot === hourStr ? 'bg-blue-500 text-white' : ''}`}
-                                        onClick={() => slot?.available && handleSlotClick(hourStr)}
-                                    >
-                                        {slot ? `${slot.price.toLocaleString()}₫` : '--'}
-                                    </div>
+                                    <td key={`${day.date}-${time}`} className="border p-2 text-center">
+                                        {day.isClosed || !slot ? (
+                                            <div className="h-10 w-full bg-gray-300 rounded" />
+                                        ) : (
+                                            <Button
+                                                variant="outline"
+                                                className={cn(
+                                                    "w-full h-10",
+                                                    slot.available
+                                                        ? "bg-green-100 hover:bg-green-200 text-green-800"
+                                                        : "bg-red-100 text-red-800 cursor-not-allowed"
+                                                )}
+                                                disabled={!slot.available}
+                                                onClick={() => handleSlotClick(day, slot)}
+                                            >
+                                                {slot.available
+                                                    ? slot.price.toLocaleString("vi-VN", { style: "currency", currency: "VND" })
+                                                    : "Đã đặt"}
+                                            </Button>
+                                        )}
+                                    </td>
                                 );
                             })}
-                        </div>
+                        </tr>
                     ))}
-                </div>
-            </div>
+                </tbody>
+            </table>
         </div>
     );
 };

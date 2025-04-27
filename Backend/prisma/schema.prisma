@@ -65,8 +65,8 @@ model Booking {
   booking_date  DateTime       @db.Date
   time_start    DateTime       @db.DateTime()
   time_end      DateTime       @db.DateTime()
-  total_price   Decimal
-  deposit       Decimal
+  total_price   Decimal        @db.Decimal(15,2)
+  deposit       Decimal        @db.Decimal(15,2)
   Status        Booking_Status @default(Pending)
   prove_payment String         @db.VarChar(30)
   UserID        String         @db.VarChar(36)
@@ -105,7 +105,7 @@ model Fields {
   field_name  String        @db.VarChar(30)
   half_hour   Boolean
   location    String        @db.VarChar(30)
-  description String        @db.VarChar(30)
+  description String        @db.VarChar(255)
   status      Fields_status @default(Inactive)
   image_url   String        @db.VarChar(30)
   OwnerID     String        @db.VarChar(36)
@@ -117,7 +117,7 @@ model Fields {
   bookings  Booking[]          @relation("FieldBookings")
   reviews   Reviews[]          @relation("FieldReviews")
   category  Category           @relation("CategoryFields", fields: [CategoryID], references: [category_id])
-
+  Space_Per_Hour   Space_Per_Hour[]
   @@index([CategoryID], map: "fields_CategoryID_fkey")
   @@index([OwnerID], map: "fields_OwnerID_fkey")
   @@map("fields")
@@ -169,7 +169,7 @@ model Space_Per_Hour {
   price             Float
   FieldID           String  @db.VarChar(36)
   day_of_week       String?
-
+  fields            Fields @relation(fields: [FieldID], references: [field_id], onDelete: Cascade, onUpdate: NoAction)
   @@index([FieldID], map: "space_per_hour_FieldID_fkey")
   @@map("space_per_hour")
 }

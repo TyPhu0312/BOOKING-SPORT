@@ -325,8 +325,8 @@ const RegisterField = () => {
 
         const finalSchedules = schedules.map((schedule) => ({
             day_of_week: schedule.day_of_week,
-            open_time: schedule.isClosed ? "" : schedule.open_time,
-            close_time: schedule.isClosed ? "" : schedule.close_time,
+            open_time: schedule.isClosed ? null : schedule.open_time,
+            close_time: schedule.isClosed ? null : schedule.close_time,
             isClosed: schedule.isClosed,
         }));
 

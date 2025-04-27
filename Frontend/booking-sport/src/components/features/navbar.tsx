@@ -77,13 +77,8 @@ const Navbar = () => {
                 <DropdownMenuLabel>Tài khoản</DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem asChild>
-                  <Link href="/user/profile" className="flex items-center gap-2">
-                    <User size={16} /> Trang cá nhân
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link href="/user/bookings" className="flex items-center gap-2">
-                    <Clock size={16} /> Lịch sử đặt sân
+                  <Link href="/AccountProfile" className="flex items-center gap-2">
+                    <User size={16} /> Tài khoản của tôi
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
@@ -136,6 +131,9 @@ const Navbar = () => {
             <>
               <div className="pt-4 border-t">
                 <p className="text-sm mb-2 font-semibold">{user.username}</p>
+                <Link href="/AccountProfile" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                  <User size={16} className="inline mr-2" /> Tài khoản
+                </Link>
                 <Button variant="ghost" className="w-full text-left" onClick={logout}>
                   <LogOut size={16} className="mr-2" /> Đăng xuất
                 </Button>

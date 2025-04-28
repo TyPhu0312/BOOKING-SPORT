@@ -1,14 +1,16 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import axios, { AxiosError } from "axios";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
-import { Checkbox } from "@/components/ui/checkbox"; 
+import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { toast } from "react-toastify";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import { useAuth } from "@/app/hooks/useAuth";
 
 interface Schedule {
@@ -31,9 +33,9 @@ interface Category {
 }
 
 interface Option {
-    option_id: string;
+    option_field_id: string;
     option_name: string;
-    category_id: string;
+    CategoryID: string;
 }
 
 interface Province {
@@ -55,6 +57,12 @@ const RegisterField = () => {
     const router = useRouter();
     const { user, loading, isLoggedIn } = useAuth();
     
+    useEffect(() => {
+        if (!loading && (!user || !user.user_id)) {
+            router.push("/login");
+        }
+    }, [user, loading, router]);
+
     // Form states
     const [fieldName, setFieldName] = useState("");
     const [category, setCategory] = useState("");
@@ -62,7 +70,7 @@ const RegisterField = () => {
     const [selectedOptions, setSelectedOptions] = useState<string[]>([]);
     const [halfHour, setHalfHour] = useState(false);
     const [imageFile, setImageFile] = useState<File | null>(null);
-    
+
     // Address states
     const [address, setAddress] = useState({
         provinceCode: "",
@@ -72,11 +80,11 @@ const RegisterField = () => {
         street: "",
         location: ""
     });
-    
+
     // Schedule states
     const [schedules, setSchedules] = useState<Schedule[]>([
         {
-            day_of_week: "Thứ Hai",
+            day_of_week: "Mon",
             open_time: "06:00",
             close_time: "22:00",
             isClosed: false,
@@ -104,16 +112,16 @@ const RegisterField = () => {
     const [error, setError] = useState<string | null>(null);
     const [successMessage, setSuccessMessage] = useState<string | null>(null);
     const [fieldErrors, setFieldErrors] = useState<{ [key: string]: string }>({});
-    
-    const daysOfWeek = [
-        "Thứ Hai",
-        "Thứ Ba", 
-        "Thứ Tư",
-        "Thứ Năm",
-        "Thứ Sáu",
-        "Thứ Bảy",
-        "Chủ Nhật"
-    ];
+
+    const daysOfWeek = useMemo(() => [
+        { backend: "Mon", display: "Thứ Hai" },
+        { backend: "Tue", display: "Thứ Ba" },
+        { backend: "Wed", display: "Thứ Tư" },
+        { backend: "Thu", display: "Thứ Năm" },
+        { backend: "Fri", display: "Thứ Sáu" },
+        { backend: "Sat", display: "Thứ Bảy" },
+        { backend: "Sun", display: "Chủ Nhật" }
+    ], []);
 
     // Handlers
     const handleFieldNameChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
@@ -126,33 +134,32 @@ const RegisterField = () => {
 
     const handleCategoryChange = useCallback((value: string) => {
         setCategory(value);
-        setSelectedOptions([]); // Reset selected options when category changes
-        // Fetch options for the selected category
-        const fetchOptions = async () => {
-            try {
-                const response = await axios.get(`http://localhost:5000/api/admin/optionfields/getByCategory/${value}`);
-                setOptions(response.data);
-            } catch (error) {
-                console.error('Error fetching options:', error);
-                toast.error('Không thể tải danh sách loại sân');
-            }
-        };
-        fetchOptions();
+        setSelectedOptions([]);
+        setOptions([]);
     }, []);
 
     const handleOptionChange = useCallback((optionId: string, checked: boolean) => {
+        if (!optionId) {
+            console.warn("optionId is undefined, skipping update");
+            return;
+        }
+        console.log("Option ID:", optionId, "Checked:", checked);
         setSelectedOptions(prev => {
+            console.log("Previous selectedOptions:", prev);
             if (checked) {
-                return [...prev, optionId];
+                const newSelected = [...prev, optionId];
+                console.log("New selectedOptions (added):", newSelected);
+                return newSelected;
             }
-            return prev.filter(id => id !== optionId);
+            const newSelected = prev.filter(id => id !== optionId);
+            console.log("New selectedOptions (removed):", newSelected);
+            return newSelected;
         });
     }, []);
 
     const handleAddressChange = useCallback((field: keyof typeof address, value: string) => {
         setAddress(prev => {
             const newAddress = { ...prev, [field]: value };
-            // Tự động cập nhật location
             const locationParts = [
                 newAddress.houseNumber,
                 newAddress.street,
@@ -174,8 +181,7 @@ const RegisterField = () => {
 
     const handleApplyToRemainingDaysChange = useCallback((index: number, checked: boolean) => {
         const currentSchedule = schedules[index];
-        
-        // Nếu bỏ tick
+
         if (!checked) {
             setApplyToRemainingDays(prev => {
                 const newApplyToRemainingDays = [...prev];
@@ -185,27 +191,20 @@ const RegisterField = () => {
             return;
         }
 
-        // Nếu tick mới
-        const currentDays = schedules.map(s => s.day_of_week);
-        const remainingDays = daysOfWeek.filter(day => !currentDays.includes(day));
+        // Tạo lịch cho tất cả các ngày trong tuần, bắt đầu từ ngày hiện tại
+        const newSchedules: Schedule[] = [];
+        const newApplyToRemainingDays: boolean[] = [];
 
-        // Thêm các ngày còn lại với cùng thời gian
-        const newSchedules = [...schedules];
-        const newApplyToRemainingDays = [...applyToRemainingDays];
-
-        // Reset tất cả các tick khác
-        newApplyToRemainingDays.fill(false);
-        newApplyToRemainingDays[index] = true;
-
-        // Thêm các ngày mới
-        remainingDays.forEach(day => {
+        // Thêm lịch cho tất cả các ngày trong tuần
+        daysOfWeek.forEach((day, i) => {
             newSchedules.push({
-                day_of_week: day,
+                day_of_week: day.backend,
                 open_time: currentSchedule.open_time,
                 close_time: currentSchedule.close_time,
-                isClosed: false
+                isClosed: currentSchedule.isClosed,
             });
-            newApplyToRemainingDays.push(false);
+            // Chỉ đánh dấu "Áp dụng cho các ngày còn lại" cho ngày hiện tại
+            newApplyToRemainingDays.push(i === index);
         });
 
         setSchedules(newSchedules);
@@ -213,7 +212,6 @@ const RegisterField = () => {
     }, [schedules, daysOfWeek]);
 
     const removeScheduleDay = useCallback((index: number) => {
-        // Không cho phép xóa nếu chỉ còn 1 ngày
         if (schedules.length === 1) {
             toast.error("Phải có ít nhất một ngày trong lịch!");
             return;
@@ -221,10 +219,8 @@ const RegisterField = () => {
 
         setSchedules(prev => {
             const newSchedules = prev.filter((_, i) => i !== index);
-            
-            // Nếu không còn ngày nào được tick và vẫn chưa đủ 7 ngày
+
             if (!applyToRemainingDays.some(value => value) && newSchedules.length < 7) {
-                // Tự động tick ngày cuối cùng
                 setApplyToRemainingDays(prev => {
                     const newApplyToRemainingDays = prev.filter((_, i) => i !== index);
                     newApplyToRemainingDays[newSchedules.length - 1] = true;
@@ -233,7 +229,7 @@ const RegisterField = () => {
             } else {
                 setApplyToRemainingDays(prev => prev.filter((_, i) => i !== index));
             }
-            
+
             return newSchedules;
         });
     }, [schedules.length, applyToRemainingDays]);
@@ -276,25 +272,21 @@ const RegisterField = () => {
         try {
             setError(null);
             
-            // Validate required fields
             if (!fieldName || !category || !selectedOptions.length || !imageFile) {
                 setError("Vui lòng điền đầy đủ thông tin cơ bản: tên sân, danh mục, loại sân và hình ảnh.");
                 return;
             }
 
-            // Validate address
             if (!address.provinceCode || !address.districtCode || !address.wardCode || !address.houseNumber || !address.street) {
                 setError("Vui lòng điền đầy đủ thông tin địa chỉ.");
                 return;
             }
 
-            // Validate schedules
             if (schedules.length !== 7) {
                 setError("Vui lòng cung cấp lịch cho tất cả các ngày trong tuần.");
                 return;
             }
 
-            // Validate time format and logic
             const timeRegex = /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/;
             for (const schedule of schedules) {
                 if (!schedule.isClosed) {
@@ -315,7 +307,6 @@ const RegisterField = () => {
                 }
             }
 
-            // Validate price ranges
             const openDays = schedules.filter(s => !s.isClosed).map(s => s.day_of_week);
             for (const day of openDays) {
                 const dayPriceRanges = priceRanges.filter(range => range.appliedDays.includes(day));
@@ -324,7 +315,6 @@ const RegisterField = () => {
                     return;
                 }
 
-                // Check for overlapping time ranges
                 for (let i = 0; i < dayPriceRanges.length; i++) {
                     for (let j = i + 1; j < dayPriceRanges.length; j++) {
                         const range1Start = new Date(`1970-01-01T${dayPriceRanges[i].from_hour}`);
@@ -340,7 +330,23 @@ const RegisterField = () => {
                 }
             }
 
-            // Prepare form data
+            // Chuyển đổi priceRanges thành day_price_ranges
+            const dayPriceRanges: { day_of_week: string, priceRanges: { from_hour: string, to_hour: string, price: string }[] }[] = [];
+            const backendDays = daysOfWeek.map(day => day.backend);
+            backendDays.forEach(day => {
+                const rangesForDay = priceRanges
+                    .filter(range => range.appliedDays.includes(day))
+                    .map(range => ({
+                        from_hour: range.from_hour,
+                        to_hour: range.to_hour,
+                        price: range.price
+                    }));
+                dayPriceRanges.push({
+                    day_of_week: day,
+                    priceRanges: rangesForDay
+                });
+            });
+
             const formData = new FormData();
             formData.append("field_name", fieldName);
             formData.append("category_id", category);
@@ -349,10 +355,12 @@ const RegisterField = () => {
             formData.append("half_hour", String(halfHour));
             formData.append("address", JSON.stringify(address));
             formData.append("schedules", JSON.stringify(schedules));
-            formData.append("price_ranges", JSON.stringify(priceRanges));
+            formData.append("day_price_ranges", JSON.stringify(dayPriceRanges));
             formData.append("image", imageFile);
+            if (user?.user_id) {
+                formData.append("user_id", user.user_id);
+            }
 
-            // Submit to API
             const response = await axios.post(
                 "http://localhost:5000/api/admin/fields/create",
                 formData,
@@ -364,33 +372,42 @@ const RegisterField = () => {
             );
 
             if (response.status === 201) {
-                toast.success("Đăng ký chủ sân thành công! Vui lòng chờ admin phê duyệt.", {
+                toast.success("Đăng ký thành công!", {
                     position: "top-right",
-                    autoClose: 3000,
-                    onClose: () => router.push("/")
+                    autoClose: 2000,
+                    hideProgressBar: false,
+                    closeOnClick: true,
+                    pauseOnHover: true,
+                    draggable: true,
+                    theme: "light",
+                    toastId: "register-success"
                 });
+
+                // Chuyển hướng sau 2 giây
+                setTimeout(() => {
+                    router.push("/");
+                }, 2000);
             }
         } catch (err) {
-            const error = err as AxiosError<{ error?: string }>;
+            const error = err as AxiosError<{ errors?: string[] }>;
             console.error("Error submitting form:", error.response?.data || error.message);
-            setError(error.response?.data?.error || "Đăng ký thất bại. Vui lòng thử lại.");
+            if (error.response?.data?.errors) {
+                setError(error.response.data.errors.join("; "));
+            } else {
+                setError("Đăng ký thất bại. Vui lòng thử lại.");
+            }
             toast.error("Đã xảy ra lỗi khi đăng ký. Vui lòng thử lại sau.", {
                 position: "top-right",
-                autoClose: 3000
+                autoClose: 2000,
+                hideProgressBar: false,
+                closeOnClick: true,
+                pauseOnHover: true,
+                draggable: true,
+                theme: "light",
+                toastId: "register-error"
             });
         }
-    }, [
-        fieldName,
-        category,
-        description,
-        selectedOptions,
-        halfHour,
-        address,
-        schedules,
-        priceRanges,
-        imageFile,
-        router
-    ]);
+    }, [fieldName, category, selectedOptions, imageFile, address, schedules, daysOfWeek, description, halfHour, user?.user_id, priceRanges, router]);
 
     // Effects
     useEffect(() => {
@@ -412,17 +429,32 @@ const RegisterField = () => {
             const fetchOptions = async () => {
                 try {
                     const response = await axios.get(`http://localhost:5000/api/admin/optionfields/getByCategory/${category}`);
-                    setOptions(response.data);
+                    console.log("Fetched options:", response.data);
+                    const optionIds = response.data.map((opt: { option_field_id: string }) => opt.option_field_id);
+                    const uniqueOptionIds = new Set(optionIds);
+                    if (optionIds.length !== uniqueOptionIds.size) {
+                        console.warn("Duplicate option_field_id found:", optionIds);
+                    }
+                    const filteredOptions = response.data.filter((opt: { option_field_id: string }) => opt.option_field_id);
+                    setOptions(filteredOptions);
                 } catch (error) {
                     console.error('Error fetching options:', error);
-                    toast.error('Không thể tải danh sách loại sân');
+                    toast.error('Không thể tải danh sách loại sân', {
+                        position: "top-right",
+                        autoClose: 2000,
+                        hideProgressBar: false,
+                        closeOnClick: true,
+                        pauseOnHover: true,
+                        draggable: true,
+                        theme: "light",
+                        toastId: "fetch-options-error"
+                    });
                 }
             };
             fetchOptions();
         }
     }, [category]);
 
-    // Province, District, Ward effects
     useEffect(() => {
         const fetchProvinces = async () => {
             try {
@@ -438,7 +470,7 @@ const RegisterField = () => {
 
     useEffect(() => {
         if (!address.provinceCode) return;
-        
+
         const fetchDistricts = async () => {
             try {
                 const response = await axios.get(`https://provinces.open-api.vn/api/p/${address.provinceCode}?depth=2`);
@@ -455,7 +487,7 @@ const RegisterField = () => {
 
     useEffect(() => {
         if (!address.districtCode) return;
-        
+
         const fetchWards = async () => {
             try {
                 const response = await axios.get(`https://provinces.open-api.vn/api/d/${address.districtCode}?depth=2`);
@@ -471,10 +503,22 @@ const RegisterField = () => {
 
     return (
         <div className="min-h-screen bg-gray-50 py-8">
+            <ToastContainer
+                position="top-right"
+                autoClose={2000}
+                hideProgressBar={false}
+                newestOnTop={false}
+                closeOnClick
+                rtl={false}
+                pauseOnFocusLoss
+                draggable
+                pauseOnHover
+                theme="light"
+            />
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="bg-white rounded-lg shadow-lg p-6 md:p-8">
                     <h2 className="text-2xl font-bold text-gray-900 mb-6">Đăng Ký Chủ Sân</h2>
-                    
+
                     {/* Form fields */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
                         <div className="space-y-4">
@@ -489,7 +533,7 @@ const RegisterField = () => {
                                     className="w-full"
                                 />
                             </div>
-                            
+
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1">
                                     Danh Mục
@@ -514,24 +558,40 @@ const RegisterField = () => {
                                         Loại Sân
                                     </label>
                                     <div className="space-y-2">
-                                        {options.map((option) => (
-                                            <div key={option.option_id} className="flex items-center space-x-2">
-                                                <Checkbox
-                                                    id={option.option_id}
-                                                    checked={selectedOptions.includes(option.option_id)}
-                                                    onCheckedChange={(checked) => handleOptionChange(option.option_id, checked as boolean)}
-                                                />
-                                                <label
-                                                    htmlFor={option.option_id}
-                                                    className="text-sm text-gray-700 cursor-pointer"
-                                                >
-                                                    {option.option_name}
-                                                </label>
-                                            </div>
-                                        ))}
+                                        {options.map((option) => {
+                                            if (!option.option_field_id) {
+                                                console.warn("Invalid option (missing option_field_id):", option);
+                                                return null;
+                                            }
+                                            return (
+                                                <div key={option.option_field_id} className="flex items-center space-x-2">
+                                                    <Checkbox
+                                                        id={option.option_field_id}
+                                                        checked={selectedOptions.includes(option.option_field_id)}
+                                                        onCheckedChange={(checked) => handleOptionChange(option.option_field_id, checked as boolean)}
+                                                    />
+                                                    <label
+                                                        htmlFor={option.option_field_id}
+                                                        className="text-sm text-gray-700 cursor-pointer"
+                                                    >
+                                                        {option.option_name || "Không có tên"}
+                                                    </label>
+                                                </div>
+                                            );
+                                        })}
                                     </div>
                                 </div>
                             )}
+
+                            <div className="flex items-center space-x-2 mt-4">
+                                <Switch
+                                    checked={halfHour}
+                                    onCheckedChange={(checked) => setHalfHour(checked)}
+                                />
+                                <span className="text-sm text-gray-700">
+                                    Được phép đặt 30 phút
+                                </span>
+                            </div>
                         </div>
 
                         <div className="space-y-4">
@@ -573,7 +633,7 @@ const RegisterField = () => {
                                     </SelectContent>
                                 </Select>
                             </div>
-                            
+
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1">
                                     Quận/Huyện
@@ -594,7 +654,7 @@ const RegisterField = () => {
                                     </SelectContent>
                                 </Select>
                             </div>
-                            
+
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1">
                                     Phường/Xã
@@ -616,7 +676,7 @@ const RegisterField = () => {
                                 </Select>
                             </div>
                         </div>
-                        
+
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -628,7 +688,7 @@ const RegisterField = () => {
                                     placeholder="Nhập số nhà"
                                 />
                             </div>
-                            
+
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1">
                                     Tên Đường
@@ -639,6 +699,18 @@ const RegisterField = () => {
                                     placeholder="Nhập tên đường"
                                 />
                             </div>
+                        </div>
+
+                        <div className="mt-4">
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                                Địa Chỉ Đầy Đủ
+                            </label>
+                            <Input
+                                value={address.location}
+                                readOnly
+                                placeholder="Địa chỉ sẽ tự động điền sau khi chọn các thông tin trên"
+                                className="w-full bg-gray-100 cursor-not-allowed"
+                            />
                         </div>
                     </div>
 
@@ -653,10 +725,10 @@ const RegisterField = () => {
                                             Ngày
                                         </label>
                                         <div className="text-gray-900 font-medium">
-                                            {schedule.day_of_week}
+                                            {daysOfWeek.find(day => day.backend === schedule.day_of_week)?.display}
                                         </div>
                                     </div>
-                                    
+
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700 mb-1">
                                             Giờ Mở Cửa
@@ -668,7 +740,7 @@ const RegisterField = () => {
                                             disabled={schedule.isClosed}
                                         />
                                     </div>
-                                    
+
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700 mb-1">
                                             Giờ Đóng Cửa
@@ -680,7 +752,7 @@ const RegisterField = () => {
                                             disabled={schedule.isClosed}
                                         />
                                     </div>
-                                    
+
                                     <div className="flex items-center justify-between space-x-4">
                                         <div className="flex items-center space-x-2">
                                             <Switch
@@ -689,7 +761,7 @@ const RegisterField = () => {
                                             />
                                             <span className="text-sm text-gray-600">Ngày nghỉ</span>
                                         </div>
-                                        
+
                                         {!schedule.isClosed && (
                                             <div className="flex items-center space-x-4">
                                                 <div className="flex items-center space-x-2">
@@ -702,7 +774,7 @@ const RegisterField = () => {
                                                         Áp dụng cho các ngày còn lại
                                                     </span>
                                                 </div>
-                                                
+
                                                 <Button
                                                     variant="destructive"
                                                     size="sm"
@@ -734,7 +806,7 @@ const RegisterField = () => {
                                         onChange={(e) => handleCurrentPriceRangeChange("from_hour", e.target.value)}
                                     />
                                 </div>
-                                
+
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-1">
                                         Đến Giờ
@@ -745,7 +817,7 @@ const RegisterField = () => {
                                         onChange={(e) => handleCurrentPriceRangeChange("to_hour", e.target.value)}
                                     />
                                 </div>
-                                
+
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-1">
                                         Giá (VNĐ)
@@ -764,21 +836,21 @@ const RegisterField = () => {
                                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                                     {daysOfWeek.map((day) => {
                                         const isClosed = schedules.find(
-                                            (schedule) => schedule.day_of_week === day
+                                            (schedule) => schedule.day_of_week === day.backend
                                         )?.isClosed;
                                         if (isClosed) return null;
                                         return (
-                                            <div key={day} className="flex items-center space-x-2">
+                                            <div key={day.backend} className="flex items-center space-x-2">
                                                 <Checkbox
-                                                    id={`apply-day-${day}`}
-                                                    checked={currentPriceRange.appliedDays.includes(day)}
-                                                    onCheckedChange={(checked) => handleDaySelection(day, checked as boolean)}
+                                                    id={`apply-day-${day.backend}`}
+                                                    checked={currentPriceRange.appliedDays.includes(day.backend)}
+                                                    onCheckedChange={(checked) => handleDaySelection(day.backend, checked as boolean)}
                                                 />
                                                 <label
-                                                    htmlFor={`apply-day-${day}`}
+                                                    htmlFor={`apply-day-${day.backend}`}
                                                     className="text-sm text-gray-700 cursor-pointer"
                                                 >
-                                                    {day}
+                                                    {day.display}
                                                 </label>
                                             </div>
                                         );
@@ -825,7 +897,7 @@ const RegisterField = () => {
                                                         {new Intl.NumberFormat('vi-VN').format(Number(range.price))} VNĐ
                                                     </td>
                                                     <td className="px-6 py-4 text-sm text-gray-900">
-                                                        {range.appliedDays.join(", ")}
+                                                        {range.appliedDays.map(day => daysOfWeek.find(d => d.backend === day)?.display).join(", ")}
                                                     </td>
                                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                                         <Button

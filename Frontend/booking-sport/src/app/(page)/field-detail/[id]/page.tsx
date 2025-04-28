@@ -397,7 +397,7 @@ const FieldDetail = () => {
                             <span className="font-bold text-[18px]">Giờ mở cửa:</span>
                             <span className="text-gray-600 text-[18px]">
                                 {fieldInfo.schedules?.length > 0 && fieldInfo.schedules[0].open_time
-                                    ? fieldInfo.schedules[0].open_time.substring(11, 16)
+                                    ? fieldInfo.schedules[0].open_time
                                     : "Chưa có thông tin"}
                             </span>
                         </div>

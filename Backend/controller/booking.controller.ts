@@ -8,6 +8,7 @@ export const getAllBookings = async (req: any, res: any) => {
     const bookings = await prisma.booking.findMany({
       include: { user: true, fields: true },
     });
+
     res.status(200).json(bookings);
   } catch (error: any) {
     console.error(error);
@@ -86,11 +87,58 @@ export const createBooking = async (req: any, res: any) => {
       return res.status(400).json({ error: 'Thiếu trường dữ liệu' });
     }
 
+    const startDateTime = combineDateAndTime(booking_date, time_start);
+    const endDateTime = combineDateAndTime(booking_date, time_end);
+
+    // 1. Kiểm tra xem đã có người đặt trong khoảng giờ đó chưa
+    const overlappingBooking = await prisma.booking.findFirst({
+      where: {
+        FieldID: FieldID,
+        booking_date: new Date(booking_date),
+        OR: [
+          {
+            time_start: {
+              lt: endDateTime,
+            },
+            time_end: {
+              gt: startDateTime,
+            },
+          },
+        ],
+      },
+    });
+
+    if (overlappingBooking) {
+      const overlapStart = new Date(Math.max(
+        startDateTime.getTime(),
+        overlappingBooking.time_start.getTime()
+      ));
+    
+      const overlapEnd = new Date(Math.min(
+        endDateTime.getTime(),
+        overlappingBooking.time_end.getTime()
+      ));
+    
+      const formatTime = (date: Date) => {
+        const vnTime = new Date(date.getTime() - 7 * 60 * 60 * 1000);
+        return vnTime.toLocaleTimeString('en-GB', {
+          hour: '2-digit',
+          minute: '2-digit',
+          hour12: false,
+        });
+      };
+
+      return res.status(400).json({
+        error: `Khung giờ từ ${formatTime(overlapStart)} đến ${formatTime(overlapEnd)} đã có người đặt.`,
+      });
+    }
+
+    // 2. Nếu không có booking trùng thì tiến hành tạo
     const newBooking = await prisma.booking.create({
       data: {
         booking_date: new Date(booking_date),
-        time_start: combineDateAndTime(booking_date,time_start),
-        time_end: combineDateAndTime(booking_date,time_end),
+        time_start: startDateTime,
+        time_end: endDateTime,
         total_price: parseInt(total_price),
         deposit: parseInt(deposit),
         Status: Status || 'Pending',
@@ -106,6 +154,7 @@ export const createBooking = async (req: any, res: any) => {
     res.status(500).json({ error: error.message || 'Lỗi server' });
   }
 };
+
 
 
 // Cập nhật booking

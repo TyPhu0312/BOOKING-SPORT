@@ -67,6 +67,7 @@ const BookingPage = () => {
   const searchParams = useSearchParams();
   const field_id = searchParams.get("field_id") || localStorage.getItem("last_field_id");
   const [field, setField] = useState<FieldDetail | null>(null);
+  const [errorMessage, setErrorMessage] = useState('');
 
   const [form, setForm] = useState({
     booking_date: "",
@@ -185,12 +186,15 @@ const BookingPage = () => {
         FieldID: form.FieldID,
       });
 
-      router.push("/home");
+      router.push("/");
       alert("Đặt sân thành công!");
-    } catch (err) {
+    } catch (err: any) {
       console.error("Lỗi khi đặt sân", err);
-      alert("Đặt sân thất bại");
+
+      const errorMessage = err?.response?.data?.error || "Đặt sân thất bại";
+      alert(errorMessage);
     }
+
   };
 
   useEffect(() => {
@@ -258,7 +262,7 @@ const BookingPage = () => {
                 : 0).toLocaleString("vi-VN", { style: "currency", currency: "VND" })}
             </p>
             <p className="flex items-center">
-              <span className="mr-2">⏰</span> Giờ mở cửa: {defaultSchedule.open_time?.substring(11, 16) || "N/A"}
+              <span className="mr-2">⏰</span> Giờ mở cửa: {defaultSchedule.open_time || "N/A"}
             </p>
           </div>
         </div>
@@ -275,7 +279,7 @@ const BookingPage = () => {
             </div>
             <div>
               <p className="flex items-center">
-                <span className="mr-2">⏰</span> Giờ đóng cửa: {defaultSchedule.close_time?.substring(11, 16) || "N/A"}
+                <span className="mr-2">⏰</span> Giờ đóng cửa: {defaultSchedule.close_time || "N/A"}
               </p>
               <p className="flex items-center">
                 <span className="mr-2">⭐</span> Đánh giá: 4.7/5

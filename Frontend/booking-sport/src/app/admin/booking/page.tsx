@@ -105,6 +105,26 @@ enum status {
     Confirmed,
     Cancelled
 }
+
+// Hàm format ngày
+const formatDate = (date: Date) => {
+    return new Intl.DateTimeFormat('en-GB').format(new Date(date));
+  };
+  
+  // Hàm format giờ
+  const formatTime = (date: Date) => {
+    // Trừ đi 7 giờ
+    const newDate = new Date(date);
+    newDate.setHours(newDate.getHours() - 7);
+  
+    // Format lại giờ sau khi đã trừ đi 7 giờ
+    return new Intl.DateTimeFormat('en-GB', {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false,
+    }).format(newDate);
+  };
+  
 export default function Booking() {
     const [Bookings, setBookings] = useState([]);
     const [selectedBookings, setSelectedBookings] = useState<Booking | undefined>();
@@ -112,9 +132,18 @@ export default function Booking() {
 
     useEffect(() => {
         axios.get("http://localhost:5000/api/admin/Booking/get")
-            .then(bookings => setBookings(bookings.data))
-            .catch(err => console.log(err))
-    }, []);
+          .then(response => {
+            // Format ngày và giờ cho mỗi booking
+            const formattedBookings = response.data.map((booking: any) => ({
+              ...booking,
+              booking_date: formatDate(booking.booking_date),
+              time_start: formatTime(booking.time_start),
+              time_end: formatTime(booking.time_end),
+            }));
+            setBookings(formattedBookings);
+          })
+          .catch(err => console.log(err));
+      }, []);
 
     const handleDeleteClick = (Bookings: Booking) => {
         setSelectedBookings(Bookings);
@@ -137,10 +166,18 @@ export default function Booking() {
                     });
                     // Reload the Booking or update state after deletion
                     axios.get("http://localhost:5000/api/admin/Booking/get")
-                        .then((response) => setBookings(response.data))
-                        .catch((err) => console.error("Error fetching Booking:", err));
-
-                    setShowAlert(false);  // Close the alert dialog
+                        .then((response) => {
+                            const formattedBookings = response.data.map((booking: any) => ({
+                              ...booking,
+                              booking_date: formatDate(booking.booking_date),
+                              time_start: formatTime(booking.time_start),
+                              time_end: formatTime(booking.time_end),
+                            }));
+                            setBookings(formattedBookings);
+                          })
+                          .catch((err) => console.error("Error fetching Booking:", err));
+              
+                        setShowAlert(false); // Close the alert dialog
                 })
                 .catch((err) => {
                     console.error("Error deleting Booking:", err);

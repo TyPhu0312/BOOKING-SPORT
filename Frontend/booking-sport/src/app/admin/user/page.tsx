@@ -495,8 +495,10 @@ export default function User() {
                                 onChange={handleInputChange2}  // Gọi handleInputChange khi có sự thay đổi
                                 className="col-span-4"
                             >
-                                {roles.filter((role: Role) => role.role_id !== user?.role.role_id).map((role: Role) => (
-                                    <option key={role.role_id} value={role.role_id}>{role.roleName}</option>
+                                <option value="">Change Role</option>
+                                {roles.map((role: Role) => (
+                                    <>
+                                        <option key={role.role_id} value={role.role_id}>{role.roleName}</option></>
                                 ))}
                             </select>
                         </div>

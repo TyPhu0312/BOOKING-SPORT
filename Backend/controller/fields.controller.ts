@@ -42,17 +42,17 @@ const validateRequiredFields = (
   const errors: string[] = [];
 
   if (!fieldData.field_name) errors.push("Thiếu trường field_name");
-  else if (fieldData.field_name.length > 30)
-    errors.push("field_name không được dài quá 30 ký tự");
+  else if (fieldData.field_name.length > 255)
+    errors.push("field_name không được dài quá 255 ký tự");
 
   if (fieldData.half_hour === undefined) errors.push("Thiếu trường half_hour");
 
   if (!fieldData.location) errors.push("Thiếu trường location");
-  else if (fieldData.location.length > 30)
-    errors.push("location không được dài quá 30 ký tự");
+  else if (fieldData.location.length > 255)
+    errors.push("location không được dài quá 255 ký tự");
 
   if (!fieldData.description) errors.push("Thiếu trường description");
-  else if (fieldData.description.length > 30)
+  else if (fieldData.description.length > 255)
     errors.push("description không được dài quá 255 ký tự");
 
   if (!user_id) errors.push("Thiếu trường user_id (OwnerID)");
@@ -90,7 +90,7 @@ const validateSchedules = (schedules: ScheduleInput[]): string[] => {
     }
 
     if (!validDays.includes(schedule.day_of_week)) {
-      errors.push(`Ngày không hợp lệ: ${schedule.day_of_week}`);
+      errors.push(`Ngày không hợp lệ: ${schedule.day_of_week}. Phải là một trong: ${validDays.join(", ")}`);
       continue;
     }
 
@@ -99,7 +99,6 @@ const validateSchedules = (schedules: ScheduleInput[]): string[] => {
       continue;
     }
 
-    // Chỉ validate open_time và close_time nếu isClosed là false
     if (!schedule.isClosed) {
       if (!schedule.open_time) {
         errors.push(`Thiếu trường open_time cho ngày ${schedule.day_of_week}`);
@@ -134,21 +133,17 @@ const validateSchedules = (schedules: ScheduleInput[]): string[] => {
     }
   }
 
-  // Kiểm tra xem có đủ 7 ngày trong tuần không
   const daysCovered = schedules.map((s) => s.day_of_week);
   for (const day of validDays) {
     if (!daysCovered.includes(day)) {
       errors.push(`Thiếu lịch cho ngày ${day}`);
     }
   }
-
   return errors;
 };
 
 // Hàm validate day_price_ranges
-const validateDayPriceRanges = (
-  day_price_ranges: DayPriceRange[]
-): string[] => {
+const validateDayPriceRanges = (day_price_ranges: DayPriceRange[]): string[] => {
   const errors: string[] = [];
   const validDays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
@@ -159,39 +154,26 @@ const validateDayPriceRanges = (
     }
 
     if (!validDays.includes(dayPriceRange.day_of_week)) {
-      errors.push(`Ngày không hợp lệ: ${dayPriceRange.day_of_week}`);
+      errors.push(`Ngày không hợp lệ: ${dayPriceRange.day_of_week}. Phải là một trong: ${validDays.join(", ")}`);
       continue;
     }
 
-    if (
-      !dayPriceRange.priceRanges ||
-      !Array.isArray(dayPriceRange.priceRanges)
-    ) {
-      errors.push(
-        `priceRanges phải là một mảng cho ngày ${dayPriceRange.day_of_week}`
-      );
+    if (!dayPriceRange.priceRanges || !Array.isArray(dayPriceRange.priceRanges)) {
+      errors.push(`priceRanges phải là một mảng cho ngày ${dayPriceRange.day_of_week}`);
       continue;
     }
 
     for (const range of dayPriceRange.priceRanges) {
       if (!range.from_hour) {
-        errors.push(
-          `Thiếu trường from_hour cho ngày ${dayPriceRange.day_of_week}`
-        );
+        errors.push(`Thiếu trường from_hour cho ngày ${dayPriceRange.day_of_week}`);
       } else if (!isValidTimeFormat(range.from_hour)) {
-        errors.push(
-          `Định dạng từ giờ không hợp lệ (HH:mm) cho ngày ${dayPriceRange.day_of_week}`
-        );
+        errors.push(`Định dạng từ giờ không hợp lệ (HH:mm) cho ngày ${dayPriceRange.day_of_week}`);
       }
 
       if (!range.to_hour) {
-        errors.push(
-          `Thiếu trường to_hour cho ngày ${dayPriceRange.day_of_week}`
-        );
+        errors.push(`Thiếu trường to_hour cho ngày ${dayPriceRange.day_of_week}`);
       } else if (!isValidTimeFormat(range.to_hour)) {
-        errors.push(
-          `Định dạng đến giờ không hợp lệ (HH:mm) cho ngày ${dayPriceRange.day_of_week}`
-        );
+        errors.push(`Định dạng đến giờ không hợp lệ (HH:mm) cho ngày ${dayPriceRange.day_of_week}`);
       }
 
       if (!range.price) {
@@ -199,9 +181,7 @@ const validateDayPriceRanges = (
       } else {
         const price = parseFloat(range.price);
         if (isNaN(price) || price <= 0) {
-          errors.push(
-            `Giá phải là số dương cho ngày ${dayPriceRange.day_of_week}`
-          );
+          errors.push(`Giá phải là số dương cho ngày ${dayPriceRange.day_of_week}`);
         }
       }
 
@@ -214,14 +194,11 @@ const validateDayPriceRanges = (
         const from = new Date(`1970-01-01T${range.from_hour}:00`);
         const to = new Date(`1970-01-01T${range.to_hour}:00`);
         if (from >= to) {
-          errors.push(
-            `Giờ bắt đầu phải nhỏ hơn giờ kết thúc cho ngày ${dayPriceRange.day_of_week}`
-          );
+          errors.push(`Giờ bắt đầu phải nhỏ hơn giờ kết thúc cho ngày ${dayPriceRange.day_of_week}`);
         }
       }
     }
 
-    // Kiểm tra khung giờ trùng lặp
     for (let i = 0; i < dayPriceRange.priceRanges.length; i++) {
       const range1 = dayPriceRange.priceRanges[i];
       if (!range1.from_hour || !range1.to_hour) continue;
@@ -237,16 +214,13 @@ const validateDayPriceRanges = (
         const to2 = new Date(`1970-01-01T${range2.to_hour}:00`);
 
         if ((from1 <= to2 && to1 >= from2) || (from2 <= to1 && to2 >= from1)) {
-          errors.push(
-            `Các khung giờ không được trùng lặp trong ngày ${dayPriceRange.day_of_week}`
-          );
+          errors.push(`Các khung giờ không được trùng lặp trong ngày ${dayPriceRange.day_of_week}`);
           break;
         }
       }
     }
   }
 
-  // Kiểm tra xem có đủ 7 ngày trong tuần không
   const daysCovered = day_price_ranges.map((d) => d.day_of_week);
   for (const day of validDays) {
     if (!daysCovered.includes(day)) {
@@ -256,6 +230,7 @@ const validateDayPriceRanges = (
 
   return errors;
 };
+
 const prisma = new PrismaClient();
 
 // Cấu hình multer để upload file
@@ -273,9 +248,7 @@ const upload = multer({
   storage: storage,
   fileFilter: (req, file, cb) => {
     const filetypes = /jpeg|jpg|png/;
-    const extname = filetypes.test(
-      path.extname(file.originalname).toLowerCase()
-    );
+    const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
     const mimetype = filetypes.test(file.mimetype);
     if (extname && mimetype) {
       return cb(null, true);
@@ -283,20 +256,16 @@ const upload = multer({
       cb(new Error("Chỉ chấp nhận file ảnh (jpeg, jpg, png)!"));
     }
   },
-  limits: { fileSize: 5 * 1024 * 1024 }, // Giới hạn 5MB
+  limits: { fileSize: 5 * 1024 * 1024 },
 }).single("image");
 
 // Hàm chuyển đổi chuỗi HH:mm thành định dạng ISO-8601 DateTime
 const convertTimeToISO = (time: string): string => {
-  // Sử dụng ngày cố định (1970-01-01) để ghép với giờ và phút
   const date = new Date(`1970-01-01T${time}:00Z`);
-  return date.toISOString(); // Trả về định dạng ISO-8601, ví dụ: "1970-01-01T06:00:00.000Z"
+  return date.toISOString();
 };
 
-export const createField = async (
-  req: Request,
-  res: Response
-): Promise<void> => {
+export const createField = async (req: Request, res: Response): Promise<void> => {
   upload(req, res, async (err: any) => {
     if (err) {
       res.status(400).json({ errors: [err.message] });
@@ -304,28 +273,30 @@ export const createField = async (
     }
 
     try {
-      const fieldData = req.body.field ? JSON.parse(req.body.field) : {};
-      const field_name = fieldData.field_name as string | undefined;
-      const half_hour = fieldData.half_hour as boolean | undefined;
-      const location = fieldData.location as string | undefined;
-      const description = fieldData.description as string | undefined;
-      const OwnerID = req.body.user_id as string | undefined;
-      const CategoryID = req.body.category_id as string | undefined;
-      const option_ids = req.body.option_ids
-        ? JSON.parse(req.body.option_ids)
-        : [];
-      const schedules: ScheduleInput[] = req.body.schedules
-        ? JSON.parse(req.body.schedules)
-        : [];
-      const day_price_ranges: DayPriceRange[] = req.body.day_price_ranges
-        ? JSON.parse(req.body.day_price_ranges)
-        : [];
+      // Parse dữ liệu từ body
+      const field_name = req.body.field_name as string | undefined;
+      const half_hour = req.body.half_hour === "true"; // Chuyển đổi từ string thành boolean
+      const location = req.body.address ? JSON.parse(req.body.address).location : req.body.location;
+      const description = req.body.description as string | undefined;
+      const user_id = req.body.user_id as string | undefined; // OwnerID
+      const category_id = req.body.category_id as string | undefined;
+      const option_ids = req.body.option_ids ? JSON.parse(req.body.option_ids) : [];
+      const schedules: ScheduleInput[] = req.body.schedules ? JSON.parse(req.body.schedules) : [];
+      const day_price_ranges: DayPriceRange[] = req.body.day_price_ranges ? JSON.parse(req.body.day_price_ranges) : [];
+
+      // Tạo fieldData để validate
+      const fieldData = {
+        field_name,
+        half_hour,
+        location,
+        description
+      };
 
       // Validate các trường bắt buộc
       const requiredFieldErrors = validateRequiredFields(
         fieldData,
-        OwnerID,
-        CategoryID,
+        user_id,
+        category_id,
         option_ids,
         schedules,
         day_price_ranges,
@@ -339,11 +310,7 @@ export const createField = async (
       const priceRangeErrors = validateDayPriceRanges(day_price_ranges);
 
       // Kết hợp tất cả lỗi
-      const allErrors = [
-        ...requiredFieldErrors,
-        ...scheduleErrors,
-        ...priceRangeErrors,
-      ];
+      const allErrors = [...requiredFieldErrors, ...scheduleErrors, ...priceRangeErrors];
 
       if (allErrors.length > 0) {
         res.status(400).json({ errors: allErrors });
@@ -352,7 +319,7 @@ export const createField = async (
 
       // Kiểm tra OwnerID và CategoryID
       const userExists = await prisma.user.findUnique({
-        where: { user_id: OwnerID },
+        where: { user_id },
       });
       if (!userExists) {
         res.status(400).json({ errors: ["User không tồn tại"] });
@@ -360,7 +327,7 @@ export const createField = async (
       }
 
       const categoryExists = await prisma.category.findUnique({
-        where: { category_id: CategoryID },
+        where: { category_id },
       });
       if (!categoryExists) {
         res.status(400).json({ errors: ["Category không tồn tại"] });
@@ -371,13 +338,11 @@ export const createField = async (
       const validOptions = await prisma.option_Fields.findMany({
         where: {
           option_field_id: { in: option_ids },
-          CategoryID: CategoryID,
+          CategoryID: category_id,
         },
       });
       if (validOptions.length !== option_ids.length) {
-        res
-          .status(400)
-          .json({ errors: ["Một số option không thuộc category đã chọn"] });
+        res.status(400).json({ errors: ["Một số option không thuộc category đã chọn"] });
         return;
       }
 
@@ -387,13 +352,13 @@ export const createField = async (
       const newField = await prisma.fields.create({
         data: {
           field_name: field_name!,
-          half_hour: half_hour!,
+          half_hour,
           location: location!,
           description: description!,
           status: Fields_status.Inactive,
           image_url: imageUrl,
-          OwnerID: OwnerID!,
-          CategoryID: CategoryID!,
+          OwnerID: user_id!,
+          CategoryID: category_id!,
           schedules: {
             create: schedules.map((schedule: ScheduleInput) => ({
               day_of_week: schedule.day_of_week as DayOfWeek,
@@ -420,15 +385,14 @@ export const createField = async (
       });
 
       // Lưu day_price_ranges vào Space_Per_Hour
-      const spacePerHourData = day_price_ranges.flatMap(
-        (dayPriceRange: DayPriceRange) =>
-          dayPriceRange.priceRanges.map((range: PriceRange) => ({
-            from_hour_value: range.from_hour,
-            to_hour_value: range.to_hour,
-            price: parseFloat(range.price),
-            FieldID: newField.field_id,
-            day_of_week: dayPriceRange.day_of_week,
-          }))
+      const spacePerHourData = day_price_ranges.flatMap((dayPriceRange: DayPriceRange) =>
+        dayPriceRange.priceRanges.map((range: PriceRange) => ({
+          from_hour_value: range.from_hour,
+          to_hour_value: range.to_hour,
+          price: parseFloat(range.price),
+          FieldID: newField.field_id,
+          day_of_week: dayPriceRange.day_of_week,
+        }))
       );
 
       await prisma.space_Per_Hour.createMany({
@@ -443,9 +407,7 @@ export const createField = async (
         return;
       }
       if (error.code === "P2003") {
-        res
-          .status(400)
-          .json({ errors: ["Không tìm thấy User hoặc Category liên quan"] });
+        res.status(400).json({ errors: ["Không tìm thấy User hoặc Category liên quan"] });
         return;
       }
       res.status(500).json({ errors: ["Lỗi server: " + error.message] });
@@ -454,10 +416,7 @@ export const createField = async (
 };
 
 // Lấy danh sách Fields
-export const getAllFields = async (
-  req: Request,
-  res: Response
-): Promise<void> => {
+export const getAllFields = async (req: Request, res: Response): Promise<void> => {
   try {
     const fields = await prisma.fields.findMany({
       include: {
@@ -484,10 +443,7 @@ export const getAllFields = async (
 };
 
 // Lấy Field theo ID
-export const getFieldById = async (
-  req: Request,
-  res: Response
-): Promise<void> => {
+export const getFieldById = async (req: Request, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
 
@@ -520,12 +476,8 @@ export const getFieldById = async (
       ...field,
       schedules: field.schedules.map((s) => ({
         ...s,
-        open_time: s.open_time
-          ? new Date(s.open_time).toISOString().substring(11, 16)
-          : null,
-        close_time: s.close_time
-          ? new Date(s.close_time).toISOString().substring(11, 16)
-          : null,
+        open_time: s.open_time ? new Date(s.open_time).toISOString().substring(11, 16) : null,
+        close_time: s.close_time ? new Date(s.close_time).toISOString().substring(11, 16) : null,
       })),
     };
 
@@ -536,34 +488,17 @@ export const getFieldById = async (
   }
 };
 
-export const updateField = async (
-  req: Request,
-  res: Response
-): Promise<void> => {
+// Cập nhật Field
+export const updateField = async (req: Request, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
-    const {
-      field_name,
-      half_hour,
-      location,
-      description,
-      status,
-      image_url,
-      create_at,
-      OwnerID,
-      CategoryID,
-      option_ids,
-    } = req.body;
+    const { field_name, half_hour, location, description, status, image_url, create_at, OwnerID, CategoryID, option_ids } = req.body;
 
-    // Tạo object data để chỉ cập nhật các trường được gửi lên
     const updateData: any = {};
 
-    // Chỉ thêm các trường vào updateData nếu chúng được gửi lên và hợp lệ
     if (field_name !== undefined) {
       if (typeof field_name !== "string" || field_name.length > 30) {
-        res
-          .status(400)
-          .json({ error: "field_name không hợp lệ (tối đa 30 ký tự)" });
+        res.status(400).json({ error: "field_name không hợp lệ (tối đa 30 ký tự)" });
         return;
       }
       updateData.field_name = field_name;
@@ -579,9 +514,7 @@ export const updateField = async (
 
     if (location !== undefined) {
       if (typeof location !== "string" || location.length > 30) {
-        res
-          .status(400)
-          .json({ error: "location không hợp lệ (tối đa 30 ký tự)" });
+        res.status(400).json({ error: "location không hợp lệ (tối đa 30 ký tự)" });
         return;
       }
       updateData.location = location;
@@ -589,9 +522,7 @@ export const updateField = async (
 
     if (description !== undefined) {
       if (typeof description !== "string" || description.length > 30) {
-        res
-          .status(400)
-          .json({ error: "description không hợp lệ (tối đa 255 ký tự)" });
+        res.status(400).json({ error: "description không hợp lệ (tối đa 255 ký tự)" });
         return;
       }
       updateData.description = description;
@@ -614,10 +545,7 @@ export const updateField = async (
     }
 
     if (create_at !== undefined) {
-      if (
-        typeof create_at !== "string" ||
-        isNaN(new Date(create_at).getTime())
-      ) {
+      if (typeof create_at !== "string" || isNaN(new Date(create_at).getTime())) {
         res.status(400).json({ error: "create_at không hợp lệ" });
         return;
       }
@@ -646,7 +574,6 @@ export const updateField = async (
       updateData.CategoryID = CategoryID;
     }
 
-    // Xử lý option_ids nếu được gửi lên
     if (option_ids !== undefined) {
       if (!Array.isArray(option_ids)) {
         res.status(400).json({ error: "option_ids phải là một mảng" });
@@ -656,27 +583,19 @@ export const updateField = async (
       const validOptions = await prisma.option_Fields.findMany({
         where: {
           option_field_id: { in: option_ids },
-          CategoryID:
-            req.body.CategoryID ||
-            (
-              await prisma.fields.findUnique({ where: { field_id: id } })
-            )?.CategoryID,
+          CategoryID: req.body.CategoryID || (await prisma.fields.findUnique({ where: { field_id: id } }))?.CategoryID,
         },
       });
 
       if (validOptions.length !== option_ids.length) {
-        res
-          .status(400)
-          .json({ error: "Một số option không thuộc category đã chọn" });
+        res.status(400).json({ error: "Một số option không thuộc category đã chọn" });
         return;
       }
 
-      // Xóa các quan hệ hiện tại
       await prisma.field_Option.deleteMany({
         where: { field_id: id },
       });
 
-      // Tạo lại quan hệ mới
       await prisma.field_Option.createMany({
         data: option_ids.map((option_field_id: string) => ({
           field_id: id,
@@ -685,13 +604,11 @@ export const updateField = async (
       });
     }
 
-    // Nếu không có trường nào được gửi lên để cập nhật
     if (Object.keys(updateData).length === 0 && !option_ids) {
       res.status(400).json({ error: "Không có dữ liệu nào để cập nhật" });
       return;
     }
 
-    // Cập nhật Field
     const updatedField = await prisma.fields.update({
       where: { field_id: id },
       data: updateData,
@@ -717,9 +634,7 @@ export const updateField = async (
       return;
     }
     if (error.code === "P2003") {
-      res
-        .status(400)
-        .json({ error: "Không tìm thấy User hoặc Category liên quan" });
+      res.status(400).json({ error: "Không tìm thấy User hoặc Category liên quan" });
       return;
     }
     res.status(500).json({ error: "Lỗi server: " + error.message });
@@ -727,10 +642,7 @@ export const updateField = async (
 };
 
 // Xóa Field
-export const deleteField = async (
-  req: Request,
-  res: Response
-): Promise<void> => {
+export const deleteField = async (req: Request, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
 

@@ -99,6 +99,7 @@ interface TimeSlot {
     time: string;
     available: boolean;
     price: number;
+    isAvailable: boolean;
 }
 
 interface DaySlot {
@@ -178,13 +179,10 @@ const FieldDetail = () => {
             try {
                 const bookingsRes = await axios.get<Booking[]>("http://localhost:5000/api/admin/booking/get");
                 const bookings = bookingsRes.data.filter((b) => b.FieldID === field_id);
-                console.log("Bookings:", bookings);
 
                 const scheduleRes = await axios.get<FieldDetail>(`http://localhost:5000/api/admin/fields/getById/${field_id}`);
                 const fieldSchedules = scheduleRes.data.schedules;
                 const spacePerHour = scheduleRes.data.Space_Per_Hour;
-                console.log("Field Schedules:", fieldSchedules);
-                console.log("Space Per Hour:", spacePerHour);
 
                 if (!fieldSchedules || fieldSchedules.length === 0) {
                     setError("Sân chưa được thiết lập lịch hoạt động. Vui lòng liên hệ quản trị viên.");
@@ -212,21 +210,19 @@ const FieldDetail = () => {
                     6: "Sat",
                 };
 
-                if (endDate < startDate) {
-                    setError("Ngày kết thúc không được trước ngày bắt đầu.");
-                    setSchedule([]);
-                    return;
-                }
-
                 const today = new Date();
                 today.setHours(0, 0, 0, 0);
-                console.log("Today:", today);
-                console.log("Start Date:", startDate);
-                console.log("End Date:", endDate);
 
+                // Đảm bảo startDate không nhỏ hơn ngày hiện tại
                 if (startDate < today) {
                     setStartDate(today);
                     setError("Ngày bắt đầu không được trước ngày hiện tại. Đã điều chỉnh về hôm nay.");
+                    return;
+                }
+
+                if (endDate < startDate) {
+                    setError("Ngày kết thúc không được trước ngày bắt đầu.");
+                    setSchedule([]);
                     return;
                 }
 
@@ -243,12 +239,12 @@ const FieldDetail = () => {
                     const date = new Date(startDate.getTime());
                     date.setDate(startDate.getDate() + i);
                     date.setHours(0, 0, 0, 0);
-                    console.log("Processing Date:", date);
 
                     const dayOfWeekIndex = date.getDay();
                     const dayOfWeek = dayOfWeekShortMap[dayOfWeekIndex];
                     const dayLabel = dayOfWeekMap[dayOfWeekIndex] || "Unknown";
-                    const dateStr = date.toISOString().split("T")[0];
+                    const dateStr = date.toLocaleDateString("vi-VN");
+                    const isoDateStr = date.toISOString().split("T")[0];
 
                     const fieldSchedule = fieldSchedules.find((schedule) => schedule.day_of_week === dayOfWeek);
                     const isClosed = !fieldSchedule || fieldSchedule.isClosed || !fieldSchedule.open_time || !fieldSchedule.close_time;
@@ -282,8 +278,6 @@ const FieldDetail = () => {
                     }
 
                     const relevantPrices = spacePerHour.filter((sph) => sph.day_of_week === dayOfWeek);
-                    console.log("Relevant Prices for", dayOfWeek, ":", relevantPrices);
-
                     const slots: TimeSlot[] = [];
                     for (let hour = openHour; hour < closeHour; hour++) {
                         const hourStr = `${hour.toString().padStart(2, "0")}:00`;
@@ -294,7 +288,7 @@ const FieldDetail = () => {
                             const bookingDateStr = bookingDate.toISOString().split("T")[0];
                             const bookingStart = parseInt(b.time_start.includes("T") ? b.time_start.split("T")[1].split(":")[0] : b.time_start.split(":")[0]);
                             const bookingEnd = parseInt(b.time_end.includes("T") ? b.time_end.split("T")[1].split(":")[0] : b.time_end.split(":")[0]);
-                            return bookingDateStr === dateStr && hour >= bookingStart && hour < bookingEnd;
+                            return bookingDateStr === isoDateStr && hour >= bookingStart && hour < bookingEnd;
                         });
 
                         const priceEntry = relevantPrices.find((sph) => {
@@ -303,12 +297,13 @@ const FieldDetail = () => {
                             return hour >= fromHour && hour < toHour;
                         });
 
-                        const price = priceEntry ? priceEntry.price : 0;
+                        const isAvailable = priceEntry !== undefined;
 
                         slots.push({
                             time: hourStr,
                             available: !isBooked,
-                            price,
+                            price: priceEntry ? priceEntry.price : 0,
+                            isAvailable: isAvailable,
                         });
                     }
 
@@ -327,7 +322,6 @@ const FieldDetail = () => {
                 }
 
                 setSchedule(newSchedule);
-                console.log("Generated Schedule:", newSchedule);
             } catch (error) {
                 console.error("Lỗi khi lấy lịch:", error);
                 setError("Không thể tải lịch sân. Vui lòng thử lại.");
@@ -403,7 +397,7 @@ const FieldDetail = () => {
                             <span className="font-bold text-[18px]">Giờ mở cửa:</span>
                             <span className="text-gray-600 text-[18px]">
                                 {fieldInfo.schedules?.length > 0 && fieldInfo.schedules[0].open_time
-                                    ? fieldInfo.schedules[0].open_time.substring(11, 16)
+                                    ? fieldInfo.schedules[0].open_time
                                     : "Chưa có thông tin"}
                             </span>
                         </div>

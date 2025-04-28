@@ -102,9 +102,9 @@ model Option_Fields {
 
 model Fields {
   field_id    String        @id @default(uuid()) @db.VarChar(36)
-  field_name  String        @db.VarChar(30)
+  field_name  String        @db.VarChar(255)
   half_hour   Boolean
-  location    String        @db.VarChar(30)
+  location    String        @db.VarChar(255)
   description String        @db.VarChar(255)
   status      Fields_status @default(Inactive)
   image_url   String        @db.VarChar(30)

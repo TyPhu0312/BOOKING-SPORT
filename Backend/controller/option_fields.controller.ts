@@ -31,6 +31,21 @@ export const getOptionFieldById = async (req: any, res: any) => {
   }
 };
 
+// Lấy Option Fields theo Category ID
+export const getOptionFieldsByCategory = async (req: any, res: any) => {
+  try {
+    const { categoryId } = req.params;
+    const optionFields = await prisma.option_Fields.findMany({
+      where: { CategoryID: categoryId },
+      include: { category: true },
+    });
+    res.status(200).json(optionFields);
+  } catch (error: any) {
+    console.error(error);
+    res.status(500).json({ error: error.message || 'Lỗi server' });
+  }
+};
+
 // Tạo mới Option Field
 export const createOptionField = async (req: any, res: any) => {
   try {
